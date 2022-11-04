@@ -3,7 +3,7 @@
 
 <div class="content">
     <div class="text-center">
-        <h1>VENTAS TOTALES</h1>
+        <h1>COSTO DE VENTAS</h1>
     </div>
     <br>
     <table class="table" style="width: 100%; border: 1px solid #000; margin: 0 0 1em 1em">
@@ -17,18 +17,28 @@
         </thead>
         <tbody>
             @php
-            $r=0;
+            $p = 0;
             @endphp
             @foreach($headers as $head)
             <tr>
-                <th scope="row" style=" background:#E62E2D;color:aliceblue">{{$head}}</th>
+                @if($head == 'TOTAL PRODUCTO TERMINADO')
+                    <th scope="row" style=" background:#E62E2D;color:aliceblue">{{$head}}</th>
+                @endif
+                @if($head != 'TOTAL PRODUCTO TERMINADO')
+                    <th scope="row" style=" background:#E62E2D;color:black">{{$head}}</th>
+                @endif
                 @foreach($dates as $info)
-                    @if($r<=$contador)
-                        <td>{{'$'.number_format($info[$r])}}</td>
+                @if($p<=$contador)
+                    @if(is_int($info[$p])==false) 
+                    <td>{{$info[$p]}}</td>
                     @endif
+                    @if(is_int($info[$p])==true) 
+                    <td>{{'$'.number_format($info[$p])}}</td>
+                    @endif
+                @endif
                 @endforeach
                 @php
-                $r++;
+                $p++;
                 @endphp
             </tr>
             @endforeach

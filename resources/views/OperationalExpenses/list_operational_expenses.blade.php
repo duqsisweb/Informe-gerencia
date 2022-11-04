@@ -3,7 +3,7 @@
 
 <div class="content">
     <div class="text-center">
-        <h1>VENTAS TOTALES</h1>
+        <h1>GASTOS OPERACIONALES 2022</h1>
     </div>
     <br>
     <table class="table" style="width: 100%; border: 1px solid #000; margin: 0 0 1em 1em">

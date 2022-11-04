@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Total_sale;
+use DateTime;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -13,9 +14,38 @@ class VentasNetasController extends Controller
     public function total_sales()
     {
         try {
-            $infoSales = DB::connection('sqlsrv2')->table('TBL_RINFORME_JUNTA_DUQ')->orderBy('INF_D_MES','asc')->get();
-            if (Total_sale::all()->count() < $infoSales->count()) {
-                //foreach ($infoSales as $infosale) {
+            $infoSales = DB::connection('sqlsrv2')->table('TBL_RINFORME_JUNTA_DUQ')->select('INF_D_MES','ACEITES','MARGARINAS','SOLIDOS_CREMOSOS','INDUSTRIALES','ACIDOS_GRASOS_ACIDULADO','SERVICIO_MAQUILA')->orderBy('INF_D_FECHAS','asc')->get();
+            $formates = [];
+            $cabeceras = ['ACEITES','MARGARINAS','SOLIDOS_CREMOSOS','TOTAL PRODUCTO TERMINADO','INDUSTRIALES','OTROS(AGL-ACIDULADO)','SERVICIO DE MAQUILA','TOTAL OTROS','TOTAL VENTAS'];
+            $mes=[];
+            foreach($infoSales as $info){
+                $dateObject = DateTime::createFromFormat('m', $info->INF_D_MES)->format('F');
+                $infoACEITES=  round($info->ACEITES,3);
+                $infoMARGARINAS=  round($info->MARGARINAS,3);
+                $infoSOLIDOS_CREMOSOS=  round($info->SOLIDOS_CREMOSOS,3);
+                $infoINDUSTRIALES=  $info->INDUSTRIALES;
+                $infoOTROS=  intval($info->ACIDOS_GRASOS_ACIDULADO,0);
+                $infoSERVICIO_MAQUILA=  intval($info->SERVICIO_MAQUILA,0);
+                $TOTALP = $infoACEITES+$infoMARGARINAS+$infoSOLIDOS_CREMOSOS;
+                $TOTALO = $infoINDUSTRIALES+$infoOTROS+$infoSERVICIO_MAQUILA;
+                $TOTALV = $TOTALP+$TOTALO;
+                array_push($formates,[$infoACEITES,$infoMARGARINAS,$infoSOLIDOS_CREMOSOS,$infoINDUSTRIALES,$infoOTROS,$infoSERVICIO_MAQUILA,$TOTALP,$TOTALO,$TOTALV]);
+                array_push($mes,[ 'mes'=>$dateObject]);
+            }
+            $form = 0;
+            foreach($formates as $form){
+                $form = count($form);
+            }
+
+            return view('SalesTotal/list_sales_total', ['dates'=> $formates, 'headers'=>$cabeceras,'mes'=>$mes,'contador'=>$form]);
+        } catch (Exception $e) {
+            return $e->getMessage();
+        }
+    }
+}
+
+
+//foreach ($infoSales as $infosale) {
                     //dd($infosale->MARGARINAS);
                     /* Total_sale::create([
                         'inf_nid' => $infosale->INF_NID,
@@ -56,10 +86,3 @@ class VentasNetasController extends Controller
                         'ebitda' => $infosale->EBITDA
                     ]); */
                 //}
-            }
-            return view('SalesTotal/list_sales_total', ['dates'=> $infoSales]);
-        } catch (Exception $e) {
-            return $e->getMessage();
-        }
-    }
-}
