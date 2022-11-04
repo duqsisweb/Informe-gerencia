@@ -51,7 +51,6 @@ class GastosOperacionalesController extends Controller
          $TOTSUMOTR=$TOTALO+$infoTOTP;
          $TOTLCOSVEN=$infoTOTP+$TOTALO;
          $UTLBRUTA= +$TOTALV-$TOTSUMOTR;
-         dd($infoTOTP,$TOTALO,$TOTLCOSVEN,$TOTSUMOTR, $UTLBRUTA);
          //fin consulta
 
          $gastAdmin= round($data->GASTOS_ADMINISTRACION,5);

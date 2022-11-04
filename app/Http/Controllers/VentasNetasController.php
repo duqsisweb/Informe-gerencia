@@ -20,16 +20,16 @@ class VentasNetasController extends Controller
             $mes=[];
             foreach($infoSales as $info){
                 $dateObject = DateTime::createFromFormat('m', $info->INF_D_MES)->format('F');
-                $infoACEITES=  round($info->ACEITES,3);
-                $infoMARGARINAS=  round($info->MARGARINAS,3);
+                $infoACEITES=  round($info->ACEITES,2);
+                $infoMARGARINAS=  round($info->MARGARINAS,2);
                 $infoSOLIDOS_CREMOSOS=  round($info->SOLIDOS_CREMOSOS,3);
-                $infoINDUSTRIALES=  $info->INDUSTRIALES;
-                $infoOTROS=  intval($info->ACIDOS_GRASOS_ACIDULADO,0);
-                $infoSERVICIO_MAQUILA=  intval($info->SERVICIO_MAQUILA,0);
+                $infoINDUSTRIALES=  round($info->INDUSTRIALES,3);
+                $infoOTROS=  round($info->ACIDOS_GRASOS_ACIDULADO,3);
+                $infoSERVICIO_MAQUILA=  round($info->SERVICIO_MAQUILA,3);
                 $TOTALP = $infoACEITES+$infoMARGARINAS+$infoSOLIDOS_CREMOSOS;
                 $TOTALO = $infoINDUSTRIALES+$infoOTROS+$infoSERVICIO_MAQUILA;
                 $TOTALV = $TOTALP+$TOTALO;
-                array_push($formates,[$infoACEITES,$infoMARGARINAS,$infoSOLIDOS_CREMOSOS,$infoINDUSTRIALES,$infoOTROS,$infoSERVICIO_MAQUILA,$TOTALP,$TOTALO,$TOTALV]);
+                array_push($formates,[$infoACEITES,$infoMARGARINAS,intval(round($infoSOLIDOS_CREMOSOS)),$TOTALP,intval(round($infoINDUSTRIALES)),intval(round($infoOTROS)),intval(round($infoSERVICIO_MAQUILA)),$TOTALO,$TOTALV]);
                 array_push($mes,[ 'mes'=>$dateObject]);
             }
             $form = 0;
