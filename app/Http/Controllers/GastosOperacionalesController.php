@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use DateTime;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use PhpParser\Node\Stmt\Foreach_;
@@ -19,7 +20,8 @@ class GastosOperacionalesController extends Controller
       'PORCENTAJE ESTRATEGIA COMERCIAL','IMPUESTOS','PORCENTAJE IMPUESTOS','DESCUENTOS PRONTO PAGO',
       'PORCENTAJE DESCUENTOS PRONTO PAGO','OTROS','PORCENTAJE OTROS','DEPRECIACIONES Y AMORTIZACIONES',
       'PORCENTAJE DEPRECIACIONES Y AMORTIZACIONES','TOTAL GASTOS OPERACIONALES','PORCENTAJE TOTAL GASTOS OPERACIONALES',
-      'UTILIDAD OPERACIONAL','PORCENTAJE UTILIDAD OPERACIONAL'];  
+      'UTILIDAD OPERACIONAL','PORCENTAJE UTILIDAD OPERACIONAL'];
+      $mes=[];  
      $formGastos=[];
 
       foreach($infoGastos as $data){
@@ -35,6 +37,7 @@ class GastosOperacionalesController extends Controller
          $TOTALP = intval($infoACEITES+$infoMARGARINAS+$infoSOLIDOS_CREMOSOS);
          $TOTALO = intval($infoINDUSTRIALES+$infoOTROS+$infoSERVICIO_MAQUILA);
          $TOTALV = intval($TOTALP+$TOTALO);
+         //dd($TOTALV);
          //fin consulta externa
          //informacioin general tablacosto ventas
          $infoACEITES= intval(round($data->ACEITES2));
@@ -51,8 +54,9 @@ class GastosOperacionalesController extends Controller
          $TOTSUMOTR=$TOTALO+$infoTOTP;
          $TOTLCOSVEN=$infoTOTP+$TOTALO;
          $UTLBRUTA= +$TOTALV-$TOTSUMOTR;
-         dd($infoTOTP,$TOTALO,$TOTLCOSVEN,$TOTSUMOTR, $UTLBRUTA);
          //fin consulta
+         //consulta utilidad bruta
+         
 
          $gastAdmin= round($data->GASTOS_ADMINISTRACION,5);
          $porceGasAdmin = round($gastAdmin*100/$TOTALV,2).'%';
@@ -86,14 +90,20 @@ class GastosOperacionalesController extends Controller
          $porceDepreAmor=round($depreAmorti*100/$TOTALV,2).'%';
          $totGasOper= +$gastAdmin+$gasVentas+$depreAmorti;
          $porceTotGasOper=round($totGasOper*100/$TOTALV,2).'%';
-
-
+         $UtilOper= $UTLBRUTA-$totGasOper;
+         $porceUtilOper=round($UtilOper*100/$TOTALV,2).'%';
+         $dateObject = DateTime::createFromFormat('m', $data->INF_D_MES)->format('F');
 
          array_push($formGastos,[$gastAdmin,$porceGasAdmin,$garPersonal,$porcePerson,$honorarios,$porceHonor,$servicios,$porceServi,$otros,$porceOtros
          ,$gasVentas,$porceVentas,$gasPersonales2,$porcePersonales2,$polCartera,$porcePrtCartera,$fletes,$porceFletes,$servLogistico,$porceservLog,
          $estrComer,$porceEstrComer,$impuestos,$porceImpu,$descPronPa,$porceDesPr,$otr2,$porceOtr2,$depreAmorti,$porceDepreAmor,$totGasOper,
-         $porceTotGasOper]);
-         dd($formGastos);
+         $porceTotGasOper,$UtilOper,$porceUtilOper]);
+         array_push($mes,[ 'mes'=>$dateObject]);
       }
+      $form = 0;
+            foreach($formGastos as $form){
+                $form = count($form);
+            }
+      return view('OperationalExpenses/list_operational_expenses',['headers'=>$headers, 'dates'=>$formGastos, 'mes'=>$mes, 'contador'=>$form ]);
    }
 }

@@ -1,7 +1,9 @@
 <?php
 
 use App\Http\Controllers\CostosVentasController;
+use App\Http\Controllers\GastosNoOperacionalesController;
 use App\Http\Controllers\GastosOperacionalesController;
+use App\Http\Controllers\ToneladasController;
 use App\Http\Controllers\VentasNetasController;
 use Illuminate\Support\Facades\Route;
 use TCG\Voyager\Facades\Voyager;
@@ -28,4 +30,7 @@ Route::group(['prefix' => 'admin'], function () {
 Route::get('ventas/totales', [VentasNetasController::class, 'total_sales']);
 Route::get('ventas/costos', [CostosVentasController::class, 'total_costs']);
 Route::get('gastos/operacionales', [GastosOperacionalesController::class, 'operational_expenses']);
+Route::get('gastos/NoOper', [GastosNoOperacionalesController::class, 'nonOperatinals']);
+Route::get('ventas/Toneladas', [ToneladasController::class, 'tons']);
+Route::get('ventas/TotUnit', [VentasNetasController::class, 'unit_sales']);
 
