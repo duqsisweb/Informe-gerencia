@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use DateTime;
+use Doctrine\DBAL\Query\QueryBuilder;
+use Facade\Ignition\QueryRecorder\Query;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -51,6 +53,92 @@ class CostosVentasController extends Controller
                 $form = count($form);
             }
         return view('TotalCosts\list_total_costs', ['dates'=> $formates, 'headers'=>$headers, 'mes'=>$mes, 'contador'=>$form]);
+    }
+
+    public function unit_sales_costs(){
+        
+        $infoCosts = DB::connection('sqlsrv2')->table('TBL_RINFORME_JUNTA_DUQ')->orderBy('INF_D_FECHAS','asc')->get();
+        $infoUnits = DB::connection('sqlsrv2')->table('TBL_RINFORME_JUNTA_DUQ2')->orderBy('INF_D_FECHAS','asc')->get();
+        $headers=['ACEITES','PORCENTAJE ACEITES','MARGARINAS','PORCENTAJE MARGARINAS','SOLIDOS Y CREMOSOS','PORCENTAJE SOLIDOS Y CREMOSOS','INDUSTRIALES','PORCENTAJE INDUSTRIALES',
+                    'OTROS PRODUCTOS','PORCENTAJE OTROS PRODUCTOS','SERVICIO DE MAQUILA','PORCENTAJE SERVICIO DE MAQUILA','TOTAL COSTOS DE VENTAS','PORCENTAJE TOTAL COSTOS DE VENTAS'
+                    ,'UTILIDAD BRUTA','PORCENTAJE UTILIDAD BRUTA'];
+        $data1=[];
+        $mes=[];
+        foreach($infoCosts as $info){
+                $aceites= round($info->ACEITES2,2);
+                $aceiteDiv= round($info->ACEITES);
+                $margarinas= round($info->MARGARINAS2,2);
+                $margarinasDiv= round($info->MARGARINAS);
+                $solidCrem= round($info->SOLIDOS_CREMOSOS2,2);
+                $solidCreDiv= round($info->SOLIDOS_CREMOSOS);
+                $industriales= round($info->INDUSTRIALES2,2);
+                $induastrialesDiv= round($info->INDUSTRIALES);
+                $otrosAcGr= round($info->ACIDOS_GRASOS_ACIDULADO2,2);
+                $otrosAcGrDiv= round($info->ACIDOS_GRASOS_ACIDULADO);
+                $serviciosMqu= round($info->SERVICIO_MAQUILA2,2);
+                $serviciosMaqDiv= round($info->SERVICIO_MAQUILA);
+                $TOTALOT = round($info->INDUSTRIALES2+$info->ACIDOS_GRASOS_ACIDULADO2+$info->SERVICIO_MAQUILA2);
+                $infoTOTP= round($info->SOLIDOS_CREMOSOS2+$info->MARGARINAS2+$info->ACEITES2);
+                $infoTOTCOSV= $TOTALOT+$infoTOTP;
+                $totPt= $aceites+$margarinas+$solidCrem;
+                $totVent= $aceiteDiv+$margarinasDiv+$solidCreDiv+$induastrialesDiv+$otrosAcGrDiv+$serviciosMaqDiv;
+                $dateObject = DateTime::createFromFormat('m', $info->INF_D_MES)->format('F');
+                array_push($data1,[$aceites,$aceiteDiv,$margarinas,$margarinasDiv,$solidCrem,$solidCreDiv,$industriales,$induastrialesDiv,$otrosAcGr,$otrosAcGrDiv,
+                            $serviciosMqu,$serviciosMaqDiv,$infoTOTCOSV,$totPt,$totVent]);
+                array_push($mes,['mes'=>$dateObject]);
+           }
+           //dd($data1); 
+        $data2=[];
+        foreach($infoUnits as $info){
+                $aceites2= round($info->TON_ACEITES,2);
+                $margarinas2= round($info->TON_MARGARINAS,2);
+                $solidCrem2= round($info->TON_SOLIDOS_CREMOSOS,2);
+                $industriales2= round($info->TON_INDUSTRIALES_OLEO,2);
+                $otrosAcGr2= round($info->TON_ACIDOS_GRASOS_ACIDULADO,2);
+                $serviciosMaq2= round($info->TON_SERVICIO_MAQUILA,2);
+                $sumTons= $industriales2+$otrosAcGr2+$aceites2+$margarinas2+$solidCrem2;
+                array_push($data2,[$aceites2,$margarinas2,$solidCrem2,$industriales2,$otrosAcGr2,$serviciosMaq2,$sumTons]);
+           }
+           //dd($data2);  
+
+        
+        $formates=[];   
+        $count= count($data2)-1;
+        for($i=0;$i<=$count;$i++){
+                $aceiteF= $data1[$i][0]/$data2[$i][0];
+                $divAceit1= $data1[$i][1]/$data2[$i][0];
+                $divMarga1= $data1[$i][3]/$data2[$i][1];
+                $divSolidCre1= $data1[$i][5]/$data2[$i][2];
+                $divIndustriales1= $data1[$i][7]/$data2[$i][3];
+                $divOtrosAcGr1= $data1[$i][9]/$data2[$i][4];
+                $divservMaq1= $data1[$i][11]/$data2[$i][5];
+                $porceAceiteF= $aceiteF*100/$divAceit1;
+                $margaF= $data1[$i][2]/$data2[$i][1];
+                $porceMargaF= round($margaF,2)*100/$divMarga1;
+                $solidCreF= $data1[$i][4]/$data2[$i][2];
+                $porceSolidCreF= round($solidCreF,2)*100/$divSolidCre1;
+                $industrialesF= $data1[$i][6]/$data2[$i][3];
+                $porceIndustrialesF= round($industrialesF,2)*100/$divIndustriales1;
+                $otrosAcGrF= $data1[$i][8]/$data2[$i][4];
+                $porceOtrosAgF= round($otrosAcGrF,2)*100/$divOtrosAcGr1;
+                $servMaqF= $data1[$i][10]/$data2[$i][5];
+                $porceservMaq= round($servMaqF,2)*100/$divservMaq1;
+                $ventTon= $data1[$i][12]/$data2[$i][6];
+                $porceCosVen= round($ventTon,2)*100/(($data1[$i][14]-$data1[$i][11])/$data2[$i][6]);
+                $utlBrut= ((round($data1[$i][14])-round($data1[$i][11]))/round($data2[$i][6]))-$ventTon;
+                $porceTotlBrut= round($utlBrut,2)*100/intval(round((round($data1[$i][14])-round($data1[$i][11]))/round($data2[$i][6])));
+                array_push($formates,[intval(round($aceiteF)),round($porceAceiteF,2).'%',intval(round($margaF)),round($porceMargaF,2).'%',
+                intval(round($solidCreF)),round($porceSolidCreF,2).'%',intval(round($industrialesF)),round($porceIndustrialesF,2).'%',
+                intval(round($otrosAcGrF)),round($porceOtrosAgF,2).'%',intval(round($servMaqF)),round($porceservMaq).'%',intval(round($ventTon)),
+                round($porceCosVen,2).'%',intval(round($utlBrut)),round($porceTotlBrut,2).'%']);     
+            }
+            $form = 0;
+            foreach($formates as $form){
+                $form = count($form);
+            }   
+            //dd($formates,$headers,$mes,$form); 
+        return view('TotalCosts\list_total_costs_unit', ['dates'=> $formates , 'headers'=>$headers, 'mes'=>$mes, 'contador'=>$form ]);
+    
     }
 
   

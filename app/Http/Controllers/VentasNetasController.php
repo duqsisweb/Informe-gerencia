@@ -107,7 +107,7 @@ class VentasNetasController extends Controller
         }
         //dd($headers, $dates, $meses, $form);
         //fin del generador del arreglo
-        return view('TotalSalesUnit\list_total_sales_unit',['headers'=>$headers, 'dates'=>$dates, 'mes'=>$meses, 'contador'=>$form ]);
+        return view('SalesTotal\list_total_sales_unit',['headers'=>$headers, 'dates'=>$dates, 'mes'=>$meses, 'contador'=>$form ]);
    
 
 
