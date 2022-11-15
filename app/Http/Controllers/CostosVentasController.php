@@ -15,6 +15,7 @@ class CostosVentasController extends Controller
     public function total_costs()
     {
         $infoSales = DB::connection('sqlsrv2')->table('TBL_RINFORME_JUNTA_DUQ')->orderBy('INF_D_FECHAS', 'asc')->get();
+        $infoSales= $infoSales->toArray();
         $headers = ['ACEITES', 'PORCENTAJE ACEITES', 'MARGARINAS', 'PORCENTAJE MARGARINAS', 'SOLIDOS Y CREMOSOS', 'PORCENTAJE SOLIDOS Y CREMOSOS', 'TOTAL PRODUCTO TERMINADO', 'PORCENTAJE TOTAL PRODUCTO TERMINADO', 'INDUSTRIALES', 'PORCENTAJE INDUSTRIALES', 'OTROS PRODUCTOS', 'PORCENTAJE OTROS PRODUCTOS', 'SERVICIO DE MAQUILA', 'PORCENTAJE SERVICIO DE MAQUILA', 'TOTAL OTROS', 'PORCENTAJE TOTAL OTROS', 'TOTAL COSTOS DE VENTAS', 'PORCENTAJE TOTAL COSTOS DE VENTAS', 'UTILIDAD BRUTA', 'PORCENTAJE UTILIDAD BRUTA'];
         $formates = [];
         $mes = [];
@@ -66,7 +67,6 @@ class CostosVentasController extends Controller
                 $TOTALVP = $TOTALPP + $TOTALOP;
                 array_push($prmediosOperados, [$infoACEITESP, $infoMARGARINASP, $infoSOLIDOS_CREMOSOSP, $TOTALPP, $infoINDUSTRIALESP, $infoOTROSP, $infoSERVICIO_MAQUILAP, $TOTALOP, $TOTALVP]);
             }
-            //dd($prmediosOperados);
             $promedios = [];
             $sumatorias = [];
             for ($i = 0; $i < count($prmediosOperados[0]); $i++) {
@@ -100,35 +100,66 @@ class CostosVentasController extends Controller
             $utilBrut= $totalProdVen-$totalCosVen;
             array_push($promediosC, [$aceite,$margarina,$solidCre,$totProTer,$industriales,$otros,$servicMaqu,$totOtros,$totalCosVen,$utilBrut]);
         }
-        //dd($promedios);
 
         $sumatoriasC = [];
-        $proms=[];
+        $promC=[];
         for ($i = 0; $i < count($promediosC[0]); $i++) {
             $suma = 0;
             foreach ($promediosC as $prom) {
                 $suma += $prom[$i];
             }
             array_push($sumatoriasC, [intval(round($suma))]);
-            array_push($proms, [intval(round($suma / count($promedios)))]);
+            array_push($promC, [intval(round($suma / count($infoSales)))]);
         }
+        //generando arreglo de promedios por producto
+        $porceP=[];
+        for($i=0;$i<count($promediosC[0]);$i++){
+            if($i != 9){
+                $unid= $promC[$i][0];
+                $calc= $promC[$i][0]/$promedios[$i][0];
+                array_push($porceP,[$unid,round($calc,2).'%']);
+            }else{
+                $det= $promC[$i][0];
+                $calc= $promC[$i][0]/$promedios[8][0];
+                array_push($porceP,[$det,round($calc,2).'%']);
+            }
+        }
+        //fin del arreglo
+
+        //generando arreglo de acumulados por producto
         $sumsFinals=[];
         for($i=0;$i<count($promediosC[0]);$i++){
             if($i != 9){
                 $det= $sumatoriasC[$i][0];
                 $porce= $sumatoriasC[$i][0]/$sumatorias[$i][0];
                 array_push($sumsFinals,[$det,round($porce,2).'%']);
-                var_dump('diferente');
-                
             }else{
                 $det= $sumatoriasC[$i][0];
                 $porce= $sumatoriasC[$i][0]/$sumatorias[8][0];
                 array_push($sumsFinals,[$det,round($porce,2).'%']);
-                var_dump('igual');
             }
         }
-        array_push($formates, $sumsFinals);
-        //array_push($formates, $promedios);
+        //fin de arreglo de acumulados por producto
+
+
+        //generando arreglo con todos los acumulados
+        $acumulados=[];
+        foreach($sumsFinals as $ultimSum){
+            array_push($acumulados,$ultimSum[0]);
+            array_push($acumulados,$ultimSum[1]);
+        }
+        array_push($formates, $acumulados);
+        //fin del arreglo
+
+         //generando arreglo con todos los promedios
+         $promediosF=[];
+         foreach($porceP as $ultiProm){
+             array_push($promediosF,$ultiProm[0]);
+             array_push($promediosF,$ultiProm[1]);
+         }
+         array_push($formates, $promediosF);
+         //fin del arreglo
+        
         $form = 0;
         foreach ($formates as $form) {
             $form = count($form);
