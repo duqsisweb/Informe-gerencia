@@ -11,8 +11,8 @@ class GastosOperacionalesController extends Controller
 {
    public function operational_expenses()
    {
-      $infoGastos = DB::connection('sqlsrv2')->table('TBL_RINFORME_JUNTA_DUQ')
-         ->orderBy('INF_D_FECHAS', 'asc')->get();
+      $infoGastos = DB::connection('sqlsrv2')->table('TBL_RINFORME_JUNTA_DUQ')->orderBy('INF_D_FECHAS', 'asc')->get();
+      $infoGastos= $infoGastos->toArray();
       $headers = [
          'GASTOS DE ADMINISTRACION', 'PORCENTAJE GASTOS DE ADMINISTRACION',
          'GATOS DE PERSONAL', 'PORCENTAJE GATOS DE PERSONAL', 'HONORARIOS', 'PORCENTAJE HONORARIOS',
@@ -104,12 +104,114 @@ class GastosOperacionalesController extends Controller
          ]);
          array_push($mes, ['mes' => $dateObject]);
       }
+      array_push($mes, ['mes' => 'ACUMULADO']);
+      array_push($mes, ['mes' => 'PROMEDIO']);
+      $ventTotales=[];
+      $infoOper=[];
+      foreach($infoGastos as $dataOper){
+         $gasAdmonO = round($dataOper->GASTOS_ADMINISTRACION, 5);
+         $gasPersonalO = round($dataOper->GASTOS_PERSONAL, 5);
+         $honorariosO = round($dataOper->HONORARIOS, 5);
+         $serviciosO = round($dataOper->SERVICIOS, 5);
+         $otrosO = $gasAdmonO - $gasPersonalO - $honorariosO - $serviciosO;
+         $gasVentasO = round($dataOper->GASTOS_VENTAS, 5);
+         $gasPersonalesO = round($dataOper->GASTOS_PERSONAL2,5);
+         $polCarteraO = round($dataOper->POLIZA_CARTERA,5);
+         $fletesO = round($dataOper->FLETES, 5);
+         $servLogisticoO = round($dataOper->SERVICIO_LOGISTICO,5);
+         $estrComerO = round($dataOper->ESTRATEGIA_COMERCIAL,5);
+         $impuestosO = round($dataOper->IMPUESTOS,5);
+         $descPronPaO = round($dataOper->DES_PRONTO_PAGO,5);
+         $otr2 = +$gasVentasO - $gasPersonalesO - $polCarteraO - $fletesO - $servLogisticoO - $estrComerO - $impuestosO - $descPronPaO;
+         $depreAmorti = round($dataOper->DEPRECIACIONES_AMORTIZACIONES,5);
+         $totGasOper = +$gasAdmonO + $gasVentasO + $depreAmorti;
+         //---
+         //informacion general tabla de ventas netas
+         $infoACEITES =  round($dataOper->ACEITES, 5);
+         $infoMARGARINAS =  round($dataOper->MARGARINAS, 5);
+         $infoSOLIDOS_CREMOSOS =  round($dataOper->SOLIDOS_CREMOSOS, 5);
+         //informacion general tabla de ventas netas
+         $infoINDUSTRIALES =  round($dataOper->INDUSTRIALES, 5);
+         $infoOTROS =  round($dataOper->ACIDOS_GRASOS_ACIDULADO, 5);
+         $infoSERVICIO_MAQUILA =  round($dataOper->SERVICIO_MAQUILA, 5);
+         //consulta alterna
+         $TOTALP = intval($infoACEITES + $infoMARGARINAS + $infoSOLIDOS_CREMOSOS);
+         $TOTALO = intval($infoINDUSTRIALES + $infoOTROS + $infoSERVICIO_MAQUILA);
+         $TOTALV = intval($TOTALP + $TOTALO);
+         //dd($TOTALV);
+         //fin consulta externa
+         //informacioin general tablacosto ventas
+         $infoACEITES = intval(round($dataOper->ACEITES2));
+         $infoMarga = intval(round($dataOper->MARGARINAS2));
+         $infoSOLID = intval(round($dataOper->SOLIDOS_CREMOSOS2));
+         $infoTOTP = intval(round($dataOper->SOLIDOS_CREMOSOS2 + $dataOper->MARGARINAS2 + $dataOper->ACEITES2));
+         //fin consulta general tabla costo ventas
+         //consulta general costo ventas2
+         $infoINDU = intval(round($dataOper->INDUSTRIALES2));
+         $infoOTROS = intval(round($dataOper->ACIDOS_GRASOS_ACIDULADO2));
+         $infoSERVM = intval(round($dataOper->SERVICIO_MAQUILA2));
+         $infoTOLALO = $infoINDU + $infoOTROS + $infoSERVM;
+         $TOTALO = intval(round($dataOper->INDUSTRIALES + $dataOper->ACIDOS_GRASOS_ACIDULADO + $dataOper->SERVICIO_MAQUILA));
+         $TOTSUMOTR = $TOTALO + $infoTOTP;
+         $TOTLCOSVEN = $infoTOTP + $TOTALO;
+         $UTLBRUTA = +$TOTALV - $TOTSUMOTR;
+         //fin consulta
+         //consulta utilidad bruta
+         //---
+         $UtilOper = $UTLBRUTA - $totGasOper;
+         array_push($infoOper,[$gasAdmonO,$gasPersonalO,$honorariosO,$serviciosO, $otrosO,$gasVentasO,$gasPersonalesO,$polCarteraO,$fletesO,$servLogisticoO,$estrComerO,$impuestosO,$descPronPaO,$otr2,$depreAmorti,$totGasOper,$UtilOper]);
+         array_push($ventTotales, $TOTALV);
+      }
+      
+      $sumatorias = [];
+      $promedios=[];
+        for ($i = 0; $i < count($infoOper[0]); $i++) {
+            $suma = 0;
+            foreach ($infoOper as $sum) {
+               //dd($sum[$i]); 
+               $suma += $sum[$i];
+            }
+            array_push($sumatorias, intval(round($suma)));
+            array_push($promedios, intval(round($suma / count($infoGastos))));
+        }
+        
+        //dd($promedios);
+        for ($i = 0; $i < count($infoGastos); $i++) {
+           $suma = 0;
+           foreach ($ventTotales as $tot) {
+            $suma += $tot;
+            }
+         }         
+         $sumtot=$suma;
+
+         $acumulados=[]; 
+         for ($i = 0; $i < count($infoOper[0]); $i++) {
+               $sumD = $sumatorias[$i];
+               $porceD = $sumD/$sumtot;
+               array_push($acumulados, $sumD);
+               array_push($acumulados, round($porceD,2).'%');
+            }
+        array_push($formGastos, $acumulados);
+
+        $promediosF=[]; 
+         for ($i = 0; $i < count($infoOper[0]); $i++) {
+               $promD = $promedios[$i];
+               $promPorce = $promD/($sumtot/count($infoGastos));
+               array_push($promediosF, $promD);
+               array_push($promediosF, round($promPorce,2).'%');
+            }
+        array_push($formGastos, $promediosF);
+
+
       $form = 0;
       foreach ($formGastos as $form) {
          $form = count($form);
       }
       return view('OperationalExpenses/list_operational_expenses', ['headers' => $headers, 'dates' => $formGastos, 'mes' => $mes, 'contador' => $form]);
    }
+
+
+
 
    public function unit_operational_expenses()
    {
