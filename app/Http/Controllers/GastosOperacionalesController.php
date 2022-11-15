@@ -208,7 +208,7 @@ class GastosOperacionalesController extends Controller
       foreach ($formOper as $form) {
          $form = count($form);
       }
-      //dd($form);
+      //dd($data1[$i][16]);
       return view('OperationalExpenses\list_operational_expensesUnit', ['headers' => $headers, 'dates' => $formOper, 'mes' => $mes, 'contador' => $form]);
    }
 }
