@@ -19,7 +19,7 @@
                 </div>
             </div>
         </form>
-        <form action="filter" method="POST" class="form-row mb-4">
+        <form action="filterUnitS" method="POST" class="form-row mb-4">
             @csrf
             <div class="col">
                 <div>

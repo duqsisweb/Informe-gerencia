@@ -29,52 +29,62 @@ class VentasNetasController extends Controller
             }
             $formates = [];
             $cabeceras = ['ACEITES', 'MARGARINAS', 'SOLIDOS_CREMOSOS', 'TOTAL PRODUCTO TERMINADO', 'INDUSTRIALES', 'OTROS(AGL-ACIDULADO)', 'SERVICIO DE MAQUILA', 'TOTAL OTROS', 'TOTAL VENTAS'];
-            //dd(intval(count($infoSales)/3));
+            //dd($infoSales);
             $mes = [];
-                $i=1;
+                $c=1;
                 foreach ($infoSales as $info) {
-                    if($i == 3 || $i == 6 || $i == 9 || $i == 12 ){
-
+                    
+                    if($c == 3 || $c == 6 || $c == 9 || $c == 12 ){
                         $dateObject = DateTime::createFromFormat('m', $info->INF_D_MES)->format('F');
-                        $infoACEITES =  round($info->ACEITES, 3);
-                        $infoMARGARINAS =  round($info->MARGARINAS, 2);
-                        $infoSOLIDOS_CREMOSOS =  round($info->SOLIDOS_CREMOSOS, 3);
-                        $infoINDUSTRIALES =  round($info->INDUSTRIALES, 3);
-                        $infoOTROS =  round($info->ACIDOS_GRASOS_ACIDULADO, 3);
-                        $infoSERVICIO_MAQUILA =  round($info->SERVICIO_MAQUILA, 3);
+                        $infoACEITES =  round($info->ACEITES, 5);
+                        $infoMARGARINAS =  round($info->MARGARINAS, 5);
+                        $infoSOLIDOS_CREMOSOS =  round($info->SOLIDOS_CREMOSOS, 5);
+                        $infoINDUSTRIALES =  round($info->INDUSTRIALES, 5);
+                        $infoOTROS =  round($info->ACIDOS_GRASOS_ACIDULADO, 5);
+                        $infoSERVICIO_MAQUILA =  round($info->SERVICIO_MAQUILA, 5);
                         $TOTALP = $infoACEITES + $infoMARGARINAS + $infoSOLIDOS_CREMOSOS;
                         $TOTALO = $infoINDUSTRIALES + $infoOTROS + $infoSERVICIO_MAQUILA;
                         $TOTALV = $TOTALP + $TOTALO;
                         array_push($formates, [$infoACEITES, $infoMARGARINAS, intval(round($infoSOLIDOS_CREMOSOS)), $TOTALP, intval(round($infoINDUSTRIALES)), intval(round($infoOTROS)), intval(round($infoSERVICIO_MAQUILA)), $TOTALO, $TOTALV]);
                         array_push($mes, ['mes' => $dateObject]);
-                        //array_push($mes, ['mes' => 'TRIMESTRE']);
-                        $i++;
+                        array_push($mes, ['mes' => 'TRIMESTRE']);
+                        $sumaProm = [];
+                        //dd(count($formates[0]));
+                        for ($i = 0; $i < count($formates[0]); $i++) {
+                            $suma = 0;
+                            foreach ($formates as $prom) {
+                                $suma += $prom[$i];
+                            }
+                            array_push($sumaProm, intval(round($suma /count($formates))));
+                        }
+                        array_push($formates,$sumaProm);
+                        $c++;
                     }else{
                         $dateObject = DateTime::createFromFormat('m', $info->INF_D_MES)->format('F');
-                        $infoACEITES =  round($info->ACEITES, 3);
-                        $infoMARGARINAS =  round($info->MARGARINAS, 2);
-                        $infoSOLIDOS_CREMOSOS =  round($info->SOLIDOS_CREMOSOS, 3);
-                        $infoINDUSTRIALES =  round($info->INDUSTRIALES, 3);
-                        $infoOTROS =  round($info->ACIDOS_GRASOS_ACIDULADO, 3);
-                        $infoSERVICIO_MAQUILA =  round($info->SERVICIO_MAQUILA, 3);
+                        $infoACEITES =  round($info->ACEITES, 5);
+                        $infoMARGARINAS =  round($info->MARGARINAS, 5);
+                        $infoSOLIDOS_CREMOSOS =  round($info->SOLIDOS_CREMOSOS, 5);
+                        $infoINDUSTRIALES =  round($info->INDUSTRIALES, 5);
+                        $infoOTROS =  round($info->ACIDOS_GRASOS_ACIDULADO, 5);
+                        $infoSERVICIO_MAQUILA =  round($info->SERVICIO_MAQUILA, 5);
                         $TOTALP = $infoACEITES + $infoMARGARINAS + $infoSOLIDOS_CREMOSOS;
                         $TOTALO = $infoINDUSTRIALES + $infoOTROS + $infoSERVICIO_MAQUILA;
                         $TOTALV = $TOTALP + $TOTALO;
                         array_push($formates, [$infoACEITES, $infoMARGARINAS, intval(round($infoSOLIDOS_CREMOSOS)), $TOTALP, intval(round($infoINDUSTRIALES)), intval(round($infoOTROS)), intval(round($infoSERVICIO_MAQUILA)), $TOTALO, $TOTALV]);
                         array_push($mes, ['mes' => $dateObject]);
-                        $i++;
+                        $c++;
                     }
                 }
             array_push($mes, ['mes' => 'ACUMULADO']);
             array_push($mes, ['mes' => 'PROMEDIO']);
             $prmediosOperados=[];
             foreach ($infoSales as $promedio) {
-                $infoACEITESP =  round($promedio->ACEITES, 3);
-                $infoMARGARINASP =  round($promedio->MARGARINAS, 3);
-                $infoSOLIDOS_CREMOSOSP =  round($promedio->SOLIDOS_CREMOSOS, 3);
-                $infoINDUSTRIALESP =  round($promedio->INDUSTRIALES, 3);
-                $infoOTROSP =  round($promedio->ACIDOS_GRASOS_ACIDULADO, 3);
-                $infoSERVICIO_MAQUILAP =  round($promedio->SERVICIO_MAQUILA, 3);
+                $infoACEITESP =  round($promedio->ACEITES, 5);
+                $infoMARGARINASP =  round($promedio->MARGARINAS, 5);
+                $infoSOLIDOS_CREMOSOSP =  round($promedio->SOLIDOS_CREMOSOS, 5);
+                $infoINDUSTRIALESP =  round($promedio->INDUSTRIALES, 5);
+                $infoOTROSP =  round($promedio->ACIDOS_GRASOS_ACIDULADO, 5);
+                $infoSERVICIO_MAQUILAP =  round($promedio->SERVICIO_MAQUILA, 5);
                 $TOTALPP = $infoACEITESP + $infoMARGARINASP + $infoSOLIDOS_CREMOSOSP;
                 $TOTALOP = $infoINDUSTRIALESP + $infoOTROSP + $infoSERVICIO_MAQUILAP;
                 $TOTALVP = $TOTALPP + $TOTALOP;
@@ -160,24 +170,46 @@ class VentasNetasController extends Controller
         //contador de posiciones en arreglo de registros
         $amount = count($infoTs);
         //fin contador
-
-        //repetidor para arreglo de informacion de vista
-        for ($i = 0; $i < $amount; $i++) {
-            $divAceit = $infos[$i][0] / $infoTs[$i][0];
-            $divMarga = $infos[$i][1] / $infoTs[$i][1];
-            $divSolCr = $infos[$i][2] / $infoTs[$i][2];
-            $divTotlPt = $infos[$i][3] / $infoTs[$i][3];
-            $divIndus = $infos[$i][4] / $infoTs[$i][4];
-            $divAgAc = $infos[$i][5] / $infoTs[$i][5];
-            $divServMaq = $infos[$i][6] / $infoTs[$i][6];
-            $divTotlVen = $infos[$i][7] / $infoTs[$i][7];
-            $mes = $infos[$i][8];
-
-            array_push($dates, [
-                intval($divAceit), intval(round($divMarga)), intval(round($divSolCr)), intval(round($divTotlPt)),
-                intval(round($divIndus)), intval(round($divAgAc)), intval(round($divServMaq)), intval(round($divTotlVen))
-            ]);
-            array_push($meses, ['mes' => $mes]);
+        $c=1;
+        if($c == 3 || $c == 6 || $c == 9 || $c == 12 ){
+            for ($i = 0; $i < $amount; $i++) {
+                $divAceit = $infos[$i][0] / $infoTs[$i][0];
+                $divMarga = $infos[$i][1] / $infoTs[$i][1];
+                $divSolCr = $infos[$i][2] / $infoTs[$i][2];
+                $divTotlPt = $infos[$i][3] / $infoTs[$i][3];
+                $divIndus = $infos[$i][4] / $infoTs[$i][4];
+                $divAgAc = $infos[$i][5] / $infoTs[$i][5];
+                $divServMaq = $infos[$i][6] / $infoTs[$i][6];
+                $divTotlVen = $infos[$i][7] / $infoTs[$i][7];
+                $mes = $infos[$i][8];
+    
+                array_push($dates, [
+                    intval($divAceit), intval(round($divMarga)), intval(round($divSolCr)), intval(round($divTotlPt)),
+                    intval(round($divIndus)), intval(round($divAgAc)), intval(round($divServMaq)), intval(round($divTotlVen))
+                ]);
+                array_push($meses, ['mes' => $mes]);
+                array_push($meses, ['mes' => 'TRIMESTRE']);
+            }
+            $c++;
+        }else{
+            for ($i = 0; $i < $amount; $i++) {
+                $divAceit = $infos[$i][0] / $infoTs[$i][0];
+                $divMarga = $infos[$i][1] / $infoTs[$i][1];
+                $divSolCr = $infos[$i][2] / $infoTs[$i][2];
+                $divTotlPt = $infos[$i][3] / $infoTs[$i][3];
+                $divIndus = $infos[$i][4] / $infoTs[$i][4];
+                $divAgAc = $infos[$i][5] / $infoTs[$i][5];
+                $divServMaq = $infos[$i][6] / $infoTs[$i][6];
+                $divTotlVen = $infos[$i][7] / $infoTs[$i][7];
+                $mes = $infos[$i][8];
+    
+                array_push($dates, [
+                    intval($divAceit), intval(round($divMarga)), intval(round($divSolCr)), intval(round($divTotlPt)),
+                    intval(round($divIndus)), intval(round($divAgAc)), intval(round($divServMaq)), intval(round($divTotlVen))
+                ]);
+                array_push($meses, ['mes' => $mes]);
+            }
+            $c++;
         }
             array_push($meses, ['mes' => 'ACUMULADO']);
             array_push($meses, ['mes' => 'PROMEDIO']);

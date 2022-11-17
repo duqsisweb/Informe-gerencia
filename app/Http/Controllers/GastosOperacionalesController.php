@@ -215,10 +215,10 @@ class GastosOperacionalesController extends Controller
 
    public function unit_operational_expenses()
    {
-      $infoGastosUn = DB::connection('sqlsrv2')->table('TBL_RINFORME_JUNTA_DUQ')
-         ->orderBy('INF_D_FECHAS', 'asc')->get();
-      $infoTonsUn = DB::connection('sqlsrv2')->table('TBL_RINFORME_JUNTA_DUQ2')
-         ->orderBy('INF_D_FECHAS', 'asc')->get();
+      $infoGastosUn = DB::connection('sqlsrv2')->table('TBL_RINFORME_JUNTA_DUQ')->orderBy('INF_D_FECHAS', 'asc')->get();
+      $infoGastosUn= $infoGastosUn->toArray();
+      $infoTonsUn = DB::connection('sqlsrv2')->table('TBL_RINFORME_JUNTA_DUQ2')->orderBy('INF_D_FECHAS', 'asc')->get();
+      $infoTonsUn= $infoTonsUn->toArray();
       $headers= ['GASTOS DE ADMINISTRACION','PORCENTAJE GASTOS DE ADMINISTRACION','GATOS DE PERSONAL','PORCENTAJE GATOS DE PERSONAL','HONORARIOS','PORCENTAJE HONORARIOS',
    'SERVICIOS','PORCENTAJE SERVICIOS','OTROS','PORCENTAJE OTROS','GASTOS DE VENTAS','PORCENTAJE GASTOS DE VENTAS','GATOS DE PERSONAL','PORCENTAJE GATOS DE PERSONAL','POLIZA CARTERA',
    'PORCENTAJE POLIZA CARTERA','FLETES','PORCENTAJE FLETES','SERVICIO LOGISTICO','PORCENTAJE SERVICIO LOGISTICO','ESTRATEGIA COMERCIAL','PORCENTAJE ESTRATEGIA COMERCIAL','IMPUESTOS',
@@ -250,12 +250,51 @@ class GastosOperacionalesController extends Controller
                   ,$servicLog,$estratComer,$impuestos,$descuProntP,$otros2,$depresiaci,$totGasOper,$infoTOT]);
          array_push($mes, ['mes' => $dateObject]);
       }
+      array_push($mes, ['mes' => 'ACUMULADO']);
+      array_push($mes, ['mes' => 'PROMEDIO']);
+
+      $dataOP = [];
+      foreach ($infoGastosUn as $info1) {
+         $gasAdmon = $info1->GASTOS_ADMINISTRACION;
+         $gasPerson = $info1->GASTOS_PERSONAL;
+         $honorarios = $info1->HONORARIOS;
+         $servicios = $info1->SERVICIOS;
+         $otros = $gasAdmon-$gasPerson-$honorarios-$servicios;
+         $gasVentas = $info1->GASTOS_VENTAS;
+         $gasPerson2 = $info1->GASTOS_PERSONAL2;
+         $polizCart = $info1->POLIZA_CARTERA;
+         $fletes = $info1->FLETES;
+         $servicLog = $info1->SERVICIO_LOGISTICO;
+         $estratComer = $info1->ESTRATEGIA_COMERCIAL;
+         $impuestos = $info1->IMPUESTOS;
+         $descuProntP = $info1->DES_PRONTO_PAGO;
+         $otros2 = $gasVentas-$gasPerson2-$polizCart-$fletes-$servicLog-$estratComer-$impuestos-$descuProntP;
+         $depresiaci = $info1->DEPRECIACIONES_AMORTIZACIONES;
+         $totGasOper = $gasAdmon+$gasVentas+$depresiaci;
+         array_push($dataOP, [$gasAdmon, $gasPerson,$honorarios,$servicios,$otros,$gasVentas,$gasPerson2,$polizCart,$fletes
+                  ,$servicLog,$estratComer,$impuestos,$descuProntP,$otros2,$depresiaci,$totGasOper]);
+ 
+      dd(count($dataOP[0]));
+      $sums = [];
+        for ($i = 0; $i < count($dataOP[0]); $i++) {
+            $suma = 0;
+            foreach ($dataOP as $prod) {
+                $suma += $prod[$i];
+            }
+            array_push($sums, intval(round($suma)));
+        }
+        dd($sums);
 
       $data2 = [];
       foreach ($infoTonsUn as $info2) {
          $venTON = $info2->TON_ACEITES + $info2->TON_MARGARINAS + $info2->TON_SOLIDOS_CREMOSOS + $info2->TON_INDUSTRIALES_OLEO + $info2->TON_ACIDOS_GRASOS_ACIDULADO;
          array_push($data2, [$venTON]);
       }
+            $suma = 0;
+            foreach ($data2 as $prod) {
+                $suma += $prod[0];
+            }
+      $promVenTonTot= intval(round($suma));
 
       $amount = count($data2) - 1;
       $formOper = [];
@@ -306,11 +345,15 @@ class GastosOperacionalesController extends Controller
                      ,round($porceDescuentProntPR,2).'%',intval(round($otros2R)),round($porceOtros2R,2).'%',intval(round($depreciaciR))
                      ,round($porceDepreciaR,2).'%',intval(round($totGasOperR)),round($porceTotGasOperR,2).'%',$utilOper,round($porceUtilBrR,2).'%']);
       }
+
       $form = 0;
       foreach ($formOper as $form) {
          $form = count($form);
       }
       //dd($data1[$i][16]);
       return view('OperationalExpenses\list_operational_expensesUnit', ['headers' => $headers, 'dates' => $formOper, 'mes' => $mes, 'contador' => $form]);
+   }
+
+
    }
 }

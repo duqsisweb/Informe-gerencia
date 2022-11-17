@@ -44,10 +44,12 @@ class ToneladasController extends Controller
                 $aceitesT= round($ton->TON_ACEITES,5);
                 $margarinasT= round($ton->TON_MARGARINAS,5);
                 $soliCremT= round($ton->TON_SOLIDOS_CREMOSOS,5);
-                $tonIndOlT= round($ton->TON_INDUSTRIALES_OLEO);
-                $acGrAccidT= round($ton->TON_ACIDOS_GRASOS_ACIDULADO);
-                $servMaquT= round($ton->TON_SERVICIO_MAQUILA);
-                array_push($sumados,[$aceitesT,$margarinasT,$soliCremT,$tonIndOlT,$acGrAccidT,$servMaquT]);
+                $tonIndOlT= round($ton->TON_INDUSTRIALES_OLEO,5);
+                $acGrAccidT= round($ton->TON_ACIDOS_GRASOS_ACIDULADO,5);
+                $servMaquT= round($ton->TON_SERVICIO_MAQUILA,5);
+                $ventt= $aceitesT+$margarinasT+$soliCremT;
+                $ttot= $ventt+$tonIndOlT+$acGrAccidT;
+                array_push($sumados,[$aceitesT,$margarinasT,$soliCremT,$tonIndOlT,$acGrAccidT,$servMaquT,$ttot,$ventt]);
         }
 
             $sumatorias = [];
@@ -64,18 +66,18 @@ class ToneladasController extends Controller
             $acumulados=[]; 
                 $totalPTT =  $sumatorias[0]+$sumatorias[1]+$sumatorias[2];
                 $ventTonels=  $totalPTT+$sumatorias[3]+$sumatorias[4];                      
-               array_push($acumulados,$totalPTT); array_push($acumulados,$sumatorias[0]);
+               array_push($acumulados,$sumatorias[6]); array_push($acumulados,$sumatorias[0]);
                array_push($acumulados,$sumatorias[1]);array_push($acumulados,$sumatorias[2]);
-               array_push($acumulados,$ventTonels);array_push($acumulados,$sumatorias[3]);
+               array_push($acumulados,$sumatorias[7]);array_push($acumulados,$sumatorias[3]);
                array_push($acumulados,$sumatorias[4]);array_push($acumulados,$sumatorias[5]);
                array_push($fomDates, $acumulados);
 
             $promedio=[];
-            array_push($promedio,round($ventTonels/count($infoTons)));
+            array_push($promedio,round($sumatorias[6]/count($infoTons)));
             for($i=0;$i<3;$i++){
                 array_push($promedio,$promedios[$i]);
             }
-            array_push($promedio,round($totalPTT/count($infoTons)));
+            array_push($promedio,round($sumatorias[7]/count($infoTons)));
             for($i=3;$i<count($promedios);$i++){
                 array_push($promedio,$promedios[$i]);
             }
