@@ -97,8 +97,8 @@ class VentasNetasController extends Controller
                 foreach ($prmediosOperados as $prom) {
                     $suma += $prom[$i];
                 }
-                array_push($promedios, [intval(round($suma / count($formates)))]);
                 array_push($sumatorias, [intval(round($suma))]);
+                array_push($promedios, [intval(round($suma / count($infoSales)))]);
             }
             array_push($formates,$sumatorias);
             array_push($formates,$promedios);
@@ -142,13 +142,13 @@ class VentasNetasController extends Controller
         $dates = [];
         //informacion de vista ventas netas
         foreach ($infoSales as $infoD) {
-            $aceiteUnit = round($infoD->ACEITES, 2);
-            $margaUnit = round($infoD->MARGARINAS, 2);
-            $solCrUnit = round($infoD->SOLIDOS_CREMOSOS, 2);
+            $aceiteUnit = round($infoD->ACEITES, 5);
+            $margaUnit = round($infoD->MARGARINAS, 5);
+            $solCrUnit = round($infoD->SOLIDOS_CREMOSOS, 5);
             $totlPUnit = $aceiteUnit + $margaUnit + $solCrUnit;
-            $indusUnit = round($infoD->INDUSTRIALES, 2);
-            $aglAcid = round($infoD->ACIDOS_GRASOS_ACIDULADO, 2);
-            $servMaq = round($infoD->SERVICIO_MAQUILA, 2);
+            $indusUnit = round($infoD->INDUSTRIALES, 5);
+            $aglAcid = round($infoD->ACIDOS_GRASOS_ACIDULADO, 5);
+            $servMaq = round($infoD->SERVICIO_MAQUILA, 5);
             $totTBL = round(($totlPUnit + $indusUnit + $aglAcid + $servMaq) - $servMaq);
             $dateObject = DateTime::createFromFormat('m', $infoD->INF_D_MES)->format('F');
             array_push($infos, [$aceiteUnit, $margaUnit, $solCrUnit, $totlPUnit, $indusUnit, $aglAcid, $servMaq, $totTBL, $dateObject]);
@@ -156,13 +156,13 @@ class VentasNetasController extends Controller
         //fin informacion
         //informacion de vista ventas toneladas
         foreach ($infoTons as $infoT) {
-            $aceiUnit2 = round($infoT->TON_ACEITES, 2);
-            $margaUnit2 = round($infoT->TON_MARGARINAS, 2);
-            $solCrUnit2 = round($infoT->TON_SOLIDOS_CREMOSOS, 2);
+            $aceiUnit2 = round($infoT->TON_ACEITES, 5);
+            $margaUnit2 = round($infoT->TON_MARGARINAS, 5);
+            $solCrUnit2 = round($infoT->TON_SOLIDOS_CREMOSOS, 5);
             $totlPTUnit2 = $aceiUnit2 + $margaUnit2 + $solCrUnit2;
-            $indusUnit2 = round($infoT->TON_INDUSTRIALES_OLEO, 2);
-            $agAcid2 = round($infoT->TON_ACIDOS_GRASOS_ACIDULADO, 2);
-            $servMaq2 = round($infoT->TON_SERVICIO_MAQUILA, 2);
+            $indusUnit2 = round($infoT->TON_INDUSTRIALES_OLEO, 5);
+            $agAcid2 = round($infoT->TON_ACIDOS_GRASOS_ACIDULADO, 5);
+            $servMaq2 = round($infoT->TON_SERVICIO_MAQUILA, 5);
             $totlVen2 = intval($totlPTUnit2) + intval($infoT->TON_INDUSTRIALES_OLEO) + intval(round($infoT->TON_ACIDOS_GRASOS_ACIDULADO));
             array_push($infoTs, [$aceiUnit2, $margaUnit2, $solCrUnit2, $totlPTUnit2, $indusUnit2, $agAcid2, $servMaq2, $totlVen2]);
         }
@@ -266,14 +266,14 @@ class VentasNetasController extends Controller
             for($i=0;$i<(count($sumsT)-1);$i++){
                 array_push($acumulado,$sumsV[$i]/$sumsT[$i]);
             }
-            array_push($acumulado,($sumsV[7]-$sumsV[6])/$sumsT[7]);
+            array_push($acumulado,(intval(round($sumsV[7]-$sumsV[6])/$sumsT[7])));
             array_push($dates,$acumulado);
             
             $promedio=[];
             for($i=0;$i<(count($promV)-1);$i++){
-                array_push($promedio,$promV[$i]/$promT[$i]);
+                array_push($promedio,intval(round($promV[$i]/$promT[$i])));
             }
-            array_push($promedio,($promV[7]-$promV[6])/$promT[7]);
+            array_push($promedio,(intval(round($promV[7]-$promV[6])/$promT[7])));
             array_push($dates,$promedio);
 
         $form = 0;

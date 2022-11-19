@@ -27,6 +27,7 @@
                     <th scope="row" style=" background:#E62E2D;color:black">{{$head}}</th>
                 @endif
                 @foreach($dates as $info)
+
                 @if($p<=$contador)
                         @if($head == 'TOTAL PRODUCTO TERMINADO' || $head == 'TOTAL OTROS' || $head == 'TOTAL COSTOS DE VENTAS' || $head == 'UTILIDAD BRUTA')
                             @if(is_string($info[$p]))==false) 

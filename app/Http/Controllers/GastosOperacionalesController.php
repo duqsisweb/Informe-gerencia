@@ -2,15 +2,32 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Traits\CostosUnitTrait;
+use App\Http\Traits\GastosOperTrait;
+use App\Http\Traits\VentasNetasUnitTrait;
+use App\Http\Traits\VentasToneladasTrait;
 use DateTime;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use PhpParser\Node\Stmt\Foreach_;
 
 class GastosOperacionalesController extends Controller
 {
-   public function operational_expenses()
+   use CostosUnitTrait;
+   use VentasNetasUnitTrait;
+   use GastosOperTrait;
+   use VentasToneladasTrait;
+
+   public function operational_expenses(Request $request)
    {
+      if($request->filter1 != null){
+         $fechaIni = $request->filter1.'-1';
+         $fechaFin = $request->filter2.'-1';
+         $infoGastos = DB::connection('sqlsrv2')->table('TBL_RINFORME_JUNTA_DUQ')->whereBetween('INF_D_FECHAS',[$fechaIni,$fechaFin])->orderBy('INF_D_FECHAS', 'asc')->get();
+         $infoGastos= $infoGastos->toArray();
+     }else{
+         $infoGastos = DB::connection('sqlsrv2')->table('TBL_RINFORME_JUNTA_DUQ')->orderBy('INF_D_FECHAS', 'asc')->get();
+         $infoGastos = $infoGastos->toArray();
+     }
       $infoGastos = DB::connection('sqlsrv2')->table('TBL_RINFORME_JUNTA_DUQ')->orderBy('INF_D_FECHAS', 'asc')->get();
       $infoGastos= $infoGastos->toArray();
       $headers = [
@@ -37,23 +54,23 @@ class GastosOperacionalesController extends Controller
          $infoOTROS =  round($data->ACIDOS_GRASOS_ACIDULADO, 5);
          $infoSERVICIO_MAQUILA =  round($data->SERVICIO_MAQUILA, 5);
          //consulta alterna
-         $TOTALP = intval($infoACEITES + $infoMARGARINAS + $infoSOLIDOS_CREMOSOS);
-         $TOTALO = intval($infoINDUSTRIALES + $infoOTROS + $infoSERVICIO_MAQUILA);
+         $TOTALP = intval(round($infoACEITES + $infoMARGARINAS + $infoSOLIDOS_CREMOSOS,5));
+         $TOTALO = intval(round($infoINDUSTRIALES + $infoOTROS + $infoSERVICIO_MAQUILA,5));
          $TOTALV = intval($TOTALP + $TOTALO);
          //dd($TOTALV);
          //fin consulta externa
          //informacioin general tablacosto ventas
-         $infoACEITES = intval(round($data->ACEITES2));
-         $infoMarga = intval(round($data->MARGARINAS2));
-         $infoSOLID = intval(round($data->SOLIDOS_CREMOSOS2));
-         $infoTOTP = intval(round($data->SOLIDOS_CREMOSOS2 + $data->MARGARINAS2 + $data->ACEITES2));
+         $infoACEITES = intval(round($data->ACEITES2,5));
+         $infoMarga = intval(round($data->MARGARINAS2,5));
+         $infoSOLID = intval(round($data->SOLIDOS_CREMOSOS2,5));
+         $infoTOTP = intval(round($data->SOLIDOS_CREMOSOS2 + $data->MARGARINAS2 + $data->ACEITES2,5));
          //fin consulta general tabla costo ventas
          //consulta general costo ventas2
-         $infoINDU = intval(round($data->INDUSTRIALES2));
-         $infoOTROS = intval(round($data->ACIDOS_GRASOS_ACIDULADO2));
-         $infoSERVM = intval(round($data->SERVICIO_MAQUILA2));
+         $infoINDU = intval(round($data->INDUSTRIALES2,5));
+         $infoOTROS = intval(round($data->ACIDOS_GRASOS_ACIDULADO2,5));
+         $infoSERVM = intval(round($data->SERVICIO_MAQUILA2,5));
          $infoTOLALO = $infoINDU + $infoOTROS + $infoSERVM;
-         $TOTALO = intval(round($data->INDUSTRIALES + $data->ACIDOS_GRASOS_ACIDULADO + $data->SERVICIO_MAQUILA));
+         $TOTALO = intval(round($data->INDUSTRIALES + $data->ACIDOS_GRASOS_ACIDULADO + $data->SERVICIO_MAQUILA,5));
          $TOTSUMOTR = $TOTALO + $infoTOTP;
          $TOTLCOSVEN = $infoTOTP + $TOTALO;
          $UTLBRUTA = +$TOTALV - $TOTSUMOTR;
@@ -67,29 +84,29 @@ class GastosOperacionalesController extends Controller
          $porcePerson = round($garPersonal * 100 / $TOTALV, 2) . '%';
          $honorarios = round($data->HONORARIOS, 5);
          $porceHonor = round($honorarios * 100 / $TOTALV, 2) . '%';
-         $servicios = round($data->SERVICIOS, 2);
+         $servicios = round($data->SERVICIOS, 5);
          $porceServi = round($servicios * 100 / $TOTALV, 2) . '%';
-         $otros = round($gastAdmin - $garPersonal - $honorarios - $servicios, 2);
+         $otros = round($gastAdmin - $garPersonal - $honorarios - $servicios, 5);
          $porceOtros = round($otros * 100 / $TOTALV, 2) . '%';
-         $gasVentas = round($data->GASTOS_VENTAS, 2);
+         $gasVentas = round($data->GASTOS_VENTAS, 5);
          $porceVentas = round($gasVentas * 100 / $TOTALV, 2) . '%';
-         $gasPersonales2 = round($data->GASTOS_PERSONAL2);
+         $gasPersonales2 = round($data->GASTOS_PERSONAL2,5);
          $porcePersonales2 = round($gasPersonales2 * 100 / $TOTALV, 2) . '%';
-         $polCartera = round($data->POLIZA_CARTERA);
+         $polCartera = round($data->POLIZA_CARTERA,5);
          $porcePrtCartera = round($polCartera * 100 / $TOTALV, 2) . '%';
-         $fletes = round($data->FLETES, 2);
+         $fletes = round($data->FLETES, 5);
          $porceFletes = round($fletes * 100 / $TOTALV, 2) . '%';
-         $servLogistico = round($data->SERVICIO_LOGISTICO);
+         $servLogistico = round($data->SERVICIO_LOGISTICO,5);
          $porceservLog = round($servLogistico * 100 / $TOTALV, 2) . '%';
          $estrComer = round($data->ESTRATEGIA_COMERCIAL);
          $porceEstrComer = round($estrComer * 100 / $TOTALV, 2) . '%';
-         $impuestos = round($data->IMPUESTOS);
+         $impuestos = round($data->IMPUESTOS,5);
          $porceImpu = round($impuestos * 100 / $TOTALV, 2) . '%';
-         $descPronPa = round($data->DES_PRONTO_PAGO);
+         $descPronPa = round($data->DES_PRONTO_PAGO,5);
          $porceDesPr = round($descPronPa * 100 / $TOTALV, 2) . '%';
          $otr2 = +$gasVentas - $gasPersonales2 - $polCartera - $fletes - $servLogistico - $estrComer - $impuestos - $descPronPa;
          $porceOtr2 = round($otr2 * 100 / $TOTALV, 2) . '%';
-         $depreAmorti = round($data->DEPRECIACIONES_AMORTIZACIONES);
+         $depreAmorti = round($data->DEPRECIACIONES_AMORTIZACIONES,5);
          $porceDepreAmor = round($depreAmorti * 100 / $TOTALV, 2) . '%';
          $totGasOper = +$gastAdmin + $gasVentas + $depreAmorti;
          $porceTotGasOper = round($totGasOper * 100 / $TOTALV, 2) . '%';
@@ -135,23 +152,23 @@ class GastosOperacionalesController extends Controller
          $infoOTROS =  round($dataOper->ACIDOS_GRASOS_ACIDULADO, 5);
          $infoSERVICIO_MAQUILA =  round($dataOper->SERVICIO_MAQUILA, 5);
          //consulta alterna
-         $TOTALP = intval($infoACEITES + $infoMARGARINAS + $infoSOLIDOS_CREMOSOS);
-         $TOTALO = intval($infoINDUSTRIALES + $infoOTROS + $infoSERVICIO_MAQUILA);
-         $TOTALV = intval($TOTALP + $TOTALO);
+         $TOTALP = intval(round($infoACEITES + $infoMARGARINAS + $infoSOLIDOS_CREMOSOS,5));
+         $TOTALO = intval(round($infoINDUSTRIALES + $infoOTROS + $infoSERVICIO_MAQUILA,5));
+         $TOTALV = intval(round($TOTALP + $TOTALO,5));
          //dd($TOTALV);
          //fin consulta externa
          //informacioin general tablacosto ventas
-         $infoACEITES = intval(round($dataOper->ACEITES2));
-         $infoMarga = intval(round($dataOper->MARGARINAS2));
-         $infoSOLID = intval(round($dataOper->SOLIDOS_CREMOSOS2));
-         $infoTOTP = intval(round($dataOper->SOLIDOS_CREMOSOS2 + $dataOper->MARGARINAS2 + $dataOper->ACEITES2));
+         $infoACEITES = intval(round($dataOper->ACEITES2,5));
+         $infoMarga = intval(round($dataOper->MARGARINAS2,5));
+         $infoSOLID = intval(round($dataOper->SOLIDOS_CREMOSOS2,5));
+         $infoTOTP = intval(round($dataOper->SOLIDOS_CREMOSOS2 + $dataOper->MARGARINAS2 + $dataOper->ACEITES2,5));
          //fin consulta general tabla costo ventas
          //consulta general costo ventas2
-         $infoINDU = intval(round($dataOper->INDUSTRIALES2));
-         $infoOTROS = intval(round($dataOper->ACIDOS_GRASOS_ACIDULADO2));
-         $infoSERVM = intval(round($dataOper->SERVICIO_MAQUILA2));
+         $infoINDU = intval(round($dataOper->INDUSTRIALES2,5));
+         $infoOTROS = intval(round($dataOper->ACIDOS_GRASOS_ACIDULADO2,5));
+         $infoSERVM = intval(round($dataOper->SERVICIO_MAQUILA2,5));
          $infoTOLALO = $infoINDU + $infoOTROS + $infoSERVM;
-         $TOTALO = intval(round($dataOper->INDUSTRIALES + $dataOper->ACIDOS_GRASOS_ACIDULADO + $dataOper->SERVICIO_MAQUILA));
+         $TOTALO = intval(round($dataOper->INDUSTRIALES + $dataOper->ACIDOS_GRASOS_ACIDULADO + $dataOper->SERVICIO_MAQUILA,5));
          $TOTSUMOTR = $TOTALO + $infoTOTP;
          $TOTLCOSVEN = $infoTOTP + $TOTALO;
          $UTLBRUTA = +$TOTALV - $TOTSUMOTR;
@@ -171,8 +188,8 @@ class GastosOperacionalesController extends Controller
                //dd($sum[$i]); 
                $suma += $sum[$i];
             }
-            array_push($sumatorias, intval(round($suma)));
-            array_push($promedios, intval(round($suma / count($infoGastos))));
+            array_push($sumatorias, intval(round($suma,5)));
+            array_push($promedios, intval(round($suma / count($infoGastos)),5));
         }
         
         //dd($promedios);
@@ -215,6 +232,7 @@ class GastosOperacionalesController extends Controller
 
    public function unit_operational_expenses()
    {
+
       $infoGastosUn = DB::connection('sqlsrv2')->table('TBL_RINFORME_JUNTA_DUQ')->orderBy('INF_D_FECHAS', 'asc')->get();
       $infoGastosUn= $infoGastosUn->toArray();
       $infoTonsUn = DB::connection('sqlsrv2')->table('TBL_RINFORME_JUNTA_DUQ2')->orderBy('INF_D_FECHAS', 'asc')->get();
@@ -226,134 +244,154 @@ class GastosOperacionalesController extends Controller
    'TOTAL GASTOS OPERACIONALES','PORCENTAJE TOTAL GASTOS OPERACIONALES','UTILIDAD OPERACIONAL','PORCENTAJE UTILIDAD OPERACIONAL'];
       $mes=[];
       $data1 = [];
+      $ven=[];
+      $gasOp = [];
+      $arrTotCosVen=[];
       foreach ($infoGastosUn as $info1) {
-         $gasAdmon = $info1->GASTOS_ADMINISTRACION;
-         $totVEN = ($info1->ACEITES + $info1->MARGARINAS + $info1->SOLIDOS_CREMOSOS + $info1->INDUSTRIALES + $info1->ACIDOS_GRASOS_ACIDULADO + $info1->SERVICIO_MAQUILA) - $info1->SERVICIO_MAQUILA;
-         $gasPerson = $info1->GASTOS_PERSONAL;
-         $honorarios = $info1->HONORARIOS;
-         $servicios = $info1->SERVICIOS;
+         $totCosVen= round($info1->ACEITES2,5)+round($info1->MARGARINAS2,5)+round($info1->SOLIDOS_CREMOSOS2,5)+round($info1->INDUSTRIALES2,5)+round($info1->ACIDOS_GRASOS_ACIDULADO2)+round($info1->SERVICIO_MAQUILA2,5);
+         $gasAdmon = round($info1->GASTOS_ADMINISTRACION,5);
+         $gasPerson = round($info1->GASTOS_PERSONAL,5);
+         $honorarios = round($info1->HONORARIOS,5);
+         $servicios = round($info1->SERVICIOS,5);
          $otros = $gasAdmon-$gasPerson-$honorarios-$servicios;
-         $gasVentas = $info1->GASTOS_VENTAS;
-         $gasPerson2 = $info1->GASTOS_PERSONAL2;
-         $polizCart = $info1->POLIZA_CARTERA;
-         $fletes = $info1->FLETES;
-         $servicLog = $info1->SERVICIO_LOGISTICO;
-         $estratComer = $info1->ESTRATEGIA_COMERCIAL;
-         $impuestos = $info1->IMPUESTOS;
-         $descuProntP = $info1->DES_PRONTO_PAGO;
+         $gasVentas = round($info1->GASTOS_VENTAS,5);
+         $gasPerson2 = round($info1->GASTOS_PERSONAL2,5);
+         $polizCart = round($info1->POLIZA_CARTERA,5);
+         $fletes = round($info1->FLETES,5);
+         $servicLog = round($info1->SERVICIO_LOGISTICO,5);
+         $estratComer = round($info1->ESTRATEGIA_COMERCIAL,5);
+         $impuestos = round($info1->IMPUESTOS,5);
+         $descuProntP = round($info1->DES_PRONTO_PAGO,5);
          $otros2 = $gasVentas-$gasPerson2-$polizCart-$fletes-$servicLog-$estratComer-$impuestos-$descuProntP;
-         $depresiaci = $info1->DEPRECIACIONES_AMORTIZACIONES;
-         $totGasOper = $gasAdmon+$gasVentas+$depresiaci;
+         $depresiaci = round($info1->DEPRECIACIONES_AMORTIZACIONES,5);
+         $totVen = round($info1->ACEITES,5) + round($info1->MARGARINAS,5) + round($info1->SOLIDOS_CREMOSOS,5) + round($info1->INDUSTRIALES,5) + round($info1->ACIDOS_GRASOS_ACIDULADO,5) + round($info1->SERVICIO_MAQUILA,5);
+         $servMqui= round($info1->SERVICIO_MAQUILA,5);
+         $totVEN = (round($info1->ACEITES,5) + round($info1->MARGARINAS,5) + round($info1->SOLIDOS_CREMOSOS,5) + round($info1->INDUSTRIALES,5) + round($info1->ACIDOS_GRASOS_ACIDULADO,5) + round($info1->SERVICIO_MAQUILA,5)) - round($info1->SERVICIO_MAQUILA,5);
+         $totGasOper = round($gasAdmon+$gasVentas,5)+$depresiaci;
          $dateObject = DateTime::createFromFormat('m', $info1->INF_D_MES)->format('F');
          $infoTOT = round($info1->SOLIDOS_CREMOSOS2 + $info1->MARGARINAS2 + $info1->ACEITES2)+round($info1->INDUSTRIALES2 + $info1->ACIDOS_GRASOS_ACIDULADO2 + $info1->SERVICIO_MAQUILA2);
          array_push($data1, [$gasAdmon, $totVEN, $gasPerson,$honorarios,$servicios,$otros,$gasVentas,$gasPerson2,$polizCart,$fletes
                   ,$servicLog,$estratComer,$impuestos,$descuProntP,$otros2,$depresiaci,$totGasOper,$infoTOT]);
          array_push($mes, ['mes' => $dateObject]);
+         array_push($ven,[$servMqui,$totVen]);
+         array_push($arrTotCosVen,$totCosVen);
+         array_push($gasOp, [$gasAdmon, $gasPerson,$honorarios,$servicios,$otros,$gasVentas,$gasPerson2,$polizCart,$fletes
+                  ,$servicLog,$estratComer,$impuestos,$descuProntP,$otros2,$depresiaci]);
       }
-      array_push($mes, ['mes' => 'ACUMULADO']);
-      array_push($mes, ['mes' => 'PROMEDIO']);
-
-      $dataOP = [];
-      foreach ($infoGastosUn as $info1) {
-         $gasAdmon = $info1->GASTOS_ADMINISTRACION;
-         $gasPerson = $info1->GASTOS_PERSONAL;
-         $honorarios = $info1->HONORARIOS;
-         $servicios = $info1->SERVICIOS;
-         $otros = $gasAdmon-$gasPerson-$honorarios-$servicios;
-         $gasVentas = $info1->GASTOS_VENTAS;
-         $gasPerson2 = $info1->GASTOS_PERSONAL2;
-         $polizCart = $info1->POLIZA_CARTERA;
-         $fletes = $info1->FLETES;
-         $servicLog = $info1->SERVICIO_LOGISTICO;
-         $estratComer = $info1->ESTRATEGIA_COMERCIAL;
-         $impuestos = $info1->IMPUESTOS;
-         $descuProntP = $info1->DES_PRONTO_PAGO;
-         $otros2 = $gasVentas-$gasPerson2-$polizCart-$fletes-$servicLog-$estratComer-$impuestos-$descuProntP;
-         $depresiaci = $info1->DEPRECIACIONES_AMORTIZACIONES;
-         $totGasOper = $gasAdmon+$gasVentas+$depresiaci;
-         array_push($dataOP, [$gasAdmon, $gasPerson,$honorarios,$servicios,$otros,$gasVentas,$gasPerson2,$polizCart,$fletes
-                  ,$servicLog,$estratComer,$impuestos,$descuProntP,$otros2,$depresiaci,$totGasOper]);
- 
-      dd(count($dataOP[0]));
-      $sums = [];
-        for ($i = 0; $i < count($dataOP[0]); $i++) {
-            $suma = 0;
-            foreach ($dataOP as $prod) {
-                $suma += $prod[$i];
-            }
-            array_push($sums, intval(round($suma)));
-        }
-        dd($sums);
 
       $data2 = [];
       foreach ($infoTonsUn as $info2) {
-         $venTON = $info2->TON_ACEITES + $info2->TON_MARGARINAS + $info2->TON_SOLIDOS_CREMOSOS + $info2->TON_INDUSTRIALES_OLEO + $info2->TON_ACIDOS_GRASOS_ACIDULADO;
-         array_push($data2, [$venTON]);
+         $venTON = round($info2->TON_ACEITES,5) + round($info2->TON_MARGARINAS,5) + round($info2->TON_SOLIDOS_CREMOSOS,5) + round($info2->TON_INDUSTRIALES_OLEO,5) + round($info2->TON_ACIDOS_GRASOS_ACIDULADO,5);
+         
+         array_push($data2, round($venTON,5));
       }
-            $suma = 0;
-            foreach ($data2 as $prod) {
-                $suma += $prod[0];
-            }
-      $promVenTonTot= intval(round($suma));
-
-      $amount = count($data2) - 1;
+ 
+      $amount = count($data2);
       $formOper = [];
-      for ($i = 0; $i <= $amount; $i++) {
-         $gasAdmonR = $data1[$i][0] / $data2[$i][0];
-         $porceAdmonR = intval(round($gasAdmonR)) * 100 / ($data1[$i][1] / $data2[$i][0]);
-         $gasPersonR = $data1[$i][2] / $data2[$i][0];
-         $porcePersonR = intval(round($gasPersonR)) * 100 / round(round($data1[$i][1]) / round($data2[$i][0]));
-         $honorariosR= $data1[$i][3] / $data2[$i][0];
-         $porceHonorR = intval(round($gasPersonR)) * 100 / round(round($data1[$i][1]) / round($data2[$i][0]));
-         $serviciosR= $data1[$i][4] / $data2[$i][0];
-         $porceServiR = intval(round($serviciosR)) * 100 / round(round($data1[$i][1]) / round($data2[$i][0]));
-         $otrosR= $data1[$i][5] / $data2[$i][0];
-         $porceOtrosR = intval(round($otrosR)) * 100 / round(round($data1[$i][1]) / round($data2[$i][0]));
-         $gasVentasR= $data1[$i][6] / $data2[$i][0];
-         $porceGasVentR = intval(round($gasVentasR)) * 100 / round(round($data1[$i][1]) / round($data2[$i][0]));
-         $gasPerson2R= $data1[$i][7] / $data2[$i][0];
-         $porcePerson2R = intval(round($gasPerson2R)) * 100 / round(round($data1[$i][1]) / round($data2[$i][0]));
-         $polizCartR= $data1[$i][8] / $data2[$i][0];
-         $porcePolizCartR = intval(round($polizCartR)) * 100 / round(round($data1[$i][1]) / round($data2[$i][0]));
-         $fletesR= $data1[$i][9] / $data2[$i][0];
-         $porceFletesR = intval(round($fletesR)) * 100 / round(round($data1[$i][1]) / round($data2[$i][0]));
-         $servicLogR= $data1[$i][10] / $data2[$i][0];
-         $porceServicLogR = intval(round($servicLogR)) * 100 / round(round($data1[$i][1]) / round($data2[$i][0]));
-         $estratComerR= $data1[$i][11] / $data2[$i][0];
-         $porceEstratComerR = intval(round($estratComerR)) * 100 / round(round($data1[$i][1]) / round($data2[$i][0]));
-         $impuestosR= $data1[$i][12] / $data2[$i][0];
-         $porceImpuestosR = intval(round($impuestosR)) * 100 / round(round($data1[$i][1]) / round($data2[$i][0]));
-         $descuentProntPR= $data1[$i][13] / $data2[$i][0];
-         $porceDescuentProntPR = intval(round($descuentProntPR)) * 100 / round(round($data1[$i][1]) / round($data2[$i][0]));
-         $otros2R= $data1[$i][14] / $data2[$i][0];
-         $porceOtros2R = intval(round($otros2R)) * 100 / round(round($data1[$i][1]) / round($data2[$i][0]));
-         $depreciaciR= $data1[$i][15] / $data2[$i][0];
-         $porceDepreciaR = intval(round($depreciaciR)) * 100 / round(round($data1[$i][1]) / round($data2[$i][0]));
-         $totGasOperR= $data1[$i][16] / $data2[$i][0];
-         $porceTotGasOperR = intval(round($totGasOperR)) * 100 / round(round($data1[$i][1]) / round($data2[$i][0]));
-         $TOTVEN= round($data1[$i][1])/round($data2[$i][0]);
-         $totCosVen= $data1[$i][17]/$data2[$i][0];
+      for ($i = 0; $i < $amount; $i++) {
+         $restaVen= round($data1[$i][1],5);
+         $sumTonel=round($data2[$i],5);
+         $totVenUnit= $restaVen/$sumTonel;
+         $gasAdmonR = round($data1[$i][0],5)/$sumTonel;
+         $porceAdmonR = round($gasAdmonR/$totVenUnit,2);
+         $gasPersonR = round($data1[$i][2],5) / $sumTonel;
+         $porcePersonR = round($gasPersonR/$totVenUnit,2);
+         $honorariosR= round($data1[$i][3],5) / $sumTonel;
+         $porceHonorR = round($honorariosR/$totVenUnit,2);
+         $serviciosR= round($data1[$i][4],5) / $sumTonel;
+         $porceServiR = round($serviciosR/$totVenUnit,2);
+         $otrosR= round($data1[$i][5],5) / $sumTonel;
+         $porceOtrosR = round($otrosR/$totVenUnit,2);
+         $gasVentasR= round($data1[$i][6],5) / $sumTonel;
+         $porceGasVentR = round($gasVentasR/$totVenUnit,2);
+         $gasPerson2R= round($data1[$i][7],5) / $sumTonel;
+         $porcePerson2R = round($gasPerson2R/$totVenUnit,2);
+         $polizCartR= round($data1[$i][8],5) / $sumTonel;
+         $porcePolizCartR = round($polizCartR/$totVenUnit,2);
+         $fletesR= round($data1[$i][9],5) / $sumTonel;
+         $porceFletesR = round($fletesR/$totVenUnit,2);
+         $servicLogR= round($data1[$i][10],5) / $sumTonel;
+         $porceServicLogR = round($servicLogR/$totVenUnit,2);
+         $estratComerR= round($data1[$i][11],5) / $sumTonel;
+         $porceEstratComerR = round($estratComerR/$totVenUnit,2);
+         $impuestosR= round($data1[$i][12],5) / $sumTonel;
+         $porceImpuestosR = round($impuestosR/$totVenUnit,2);
+         $descuentProntPR= round($data1[$i][13],5) / $sumTonel;
+         $porceDescuentProntPR = round($descuentProntPR/$totVenUnit,2);
+         $otros2R= round($data1[$i][14],5) / $sumTonel;
+         $porceOtros2R = round($otros2R/$totVenUnit,2);
+         $depreciaciR= round($data1[$i][15],5) / $sumTonel;
+         $porceDepreciaR = round($depreciaciR/$totVenUnit,2);
+         $totGasOperR= round($data1[$i][16],5) / $sumTonel;
+         $porceTotGasOperR = round($totGasOperR/$totVenUnit,2);
+         $TOTVEN= round($data1[$i][1])/round($data2[$i]);
+         $totCosVen= $data1[$i][17]/$data2[$i];
          $utilBrut= intval($TOTVEN-$totCosVen);
          $utilOper= +$utilBrut-intval(round($totGasOperR));
-         $porceUtilBrR = intval(round($utilOper)) * 100 / round(round($data1[$i][1]) / round($data2[$i][0]));
-         array_push($formOper, [intval(round($honorariosR)), round($porceAdmonR, 2) . '%',intval(round($gasPersonR)), round($porcePersonR,2).'%',
-                     intval(round($honorariosR)),round($porceHonorR,2).'%',intval(round($serviciosR)),round($porceServiR,2).'%',intval(round($otrosR))
-                     ,round($porceOtrosR,2).'%',intval(round($gasVentasR)),round($porceGasVentR,2).'%',intval(round($gasPerson2R))
-                     ,round($porcePerson2R,2).'%',intval(round($polizCartR)),round($porcePolizCartR,2).'%',intval(round($fletesR))
-                     ,round($porceFletesR,2).'%',intval(round($servicLogR)),round($porceServicLogR,2).'%',intval(round($estratComerR))
-                     ,round($porceEstratComerR,2).'%',intval(round($impuestosR)),round($porceImpuestosR,2).'%',intval(round($descuentProntPR))
-                     ,round($porceDescuentProntPR,2).'%',intval(round($otros2R)),round($porceOtros2R,2).'%',intval(round($depreciaciR))
-                     ,round($porceDepreciaR,2).'%',intval(round($totGasOperR)),round($porceTotGasOperR,2).'%',$utilOper,round($porceUtilBrR,2).'%']);
+         $porceUtilBrR = round($utilOper/$totVenUnit,2);
+         array_push($formOper, [$gasAdmonR, $porceAdmonR.'%',intval($gasPersonR), $porcePersonR.'%',
+         intval($honorariosR),$porceHonorR.'%',intval($serviciosR),$porceServiR.'%',intval($otrosR)
+         ,$porceOtrosR.'%',intval($gasVentasR),$porceGasVentR.'%',intval($gasPerson2R)
+         ,$porcePerson2R.'%',intval($polizCartR),$porcePolizCartR.'%',intval($fletesR)
+         ,$porceFletesR.'%',intval($servicLogR),$porceServicLogR.'%',intval($estratComerR)
+         ,$porceEstratComerR.'%',intval($impuestosR),$porceImpuestosR.'%',intval($descuentProntPR)
+         ,$porceDescuentProntPR.'%',intval($otros2R),$porceOtros2R.'%',intval($depreciaciR)
+         ,$porceDepreciaR.'%',intval($totGasOperR),$porceTotGasOperR.'%',intval($utilOper), $porceUtilBrR.'%']);
       }
+      array_push($mes, ['mes' => 'ACUMULADO']);
+      array_push($mes, ['mes' => 'PROMEDIO']);
+      $fechaIni = null;
+      $fechaFin = null;
 
-      $form = 0;
-      foreach ($formOper as $form) {
-         $form = count($form);
+      //Inicio acumulados
+      $acumGasOper=[];
+      for ($i = 0; $i < count($gasOp[0]); $i++) {
+         $suma = 0;
+         foreach ($gasOp as $gasO) {
+          $suma += $gasO[$i];
+          }
+          array_push($acumGasOper,intval(round($suma)));
+       }
+       $suma = 0;
+       for ($i = 0; $i < count($data2); $i++) {
+           $suma += intval(round($data2[$i]));
+           $acumTonel= $suma;
+         }
+      $costosVentasUnitarios= $this->TablaCostosUnit($fechaIni,$fechaFin);
+      $ventasNetasUnitarios= $this->TablaVentasUnit($fechaIni,$fechaFin);
+      $gastosOperacionales= $this->tablaGastosoperacionales($fechaIni,$fechaFin);
+      $ventastoneladas= $this->TablaVentasToneladas($fechaIni,$fechaFin);
+
+      $acumulados=[];
+      for($i=0;$i<count($acumGasOper);$i++){
+         $entero = intval(round($acumGasOper[$i]/$acumTonel));
+         $porcentaje = round($entero*100/$ventasNetasUnitarios[11][7]);
+         array_push($acumulados,$entero);
+         array_push($acumulados, round($porcentaje,2).'%');
       }
-      //dd($data1[$i][16]);
-      return view('OperationalExpenses\list_operational_expensesUnit', ['headers' => $headers, 'dates' => $formOper, 'mes' => $mes, 'contador' => $form]);
+      $acumTotGasOperUnit= $acumulados[0]+$acumulados[10];
+      $porceAcumGasOperUnit= $acumTotGasOperUnit*100/$ventasNetasUnitarios[11][7];
+      array_push($acumulados, $acumTotGasOperUnit);
+      array_push($acumulados, round($porceAcumGasOperUnit,2).'%');
+      $acumUtilOperUnit= $acumTotGasOperUnit-$costosVentasUnitarios[11][14];
+      $porceAcumUtilOperUnit= $acumUtilOperUnit*100/$ventasNetasUnitarios[11][7];
+      array_push($acumulados, $acumUtilOperUnit);
+      array_push($acumulados, round($porceAcumUtilOperUnit,2).'%');
+      //fin acumulados
+      dd($ventastoneladas, $ventastoneladas[12][0]);
+
+      $promedios=[];
+      for($i=0;$i<count($gastosOperacionales[12])-4;$i++){
+         if ($i%2==0){
+            $promGasAdmin= intval(round($gastosOperacionales[12][$i]/$ventastoneladas[12][0]));
+            array_push($promedios,$promGasAdmin);
+        }
+      }
+      
+      array_push($formOper, $acumulados);
+      return view('OperationalExpenses\list_operational_expensesUnit', ['headers' => $headers, 'dates' => $formOper, 'mes' => $mes, 'contador' => count($formOper[0])]);
    }
 
 
-   }
+   
 }

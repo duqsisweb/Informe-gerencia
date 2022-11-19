@@ -1,22 +1,27 @@
 <?php
-
-namespace App\Http\Controllers;
+namespace App\Http\Traits;
 
 use DateTime;
-use Illuminate\Http\Request;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 
-class ToneladasController extends Controller
-{
-    public function tons(){
+trait VentasToneladasTrait {
+    
+    public function TablaVentasToneladas($fechaIni, $fechaFin) {
+        if ($fechaIni != null) {
+            $fechaIni = $fechaIni . '-1';
+            $fechaFin = $fechaFin. '-1';
+            $infoTons = DB::connection('sqlsrv2')->table('TBL_RINFORME_JUNTA_DUQ')->whereBetween('INF_D_FECHAS', [$fechaIni, $fechaFin])->orderBy('INF_D_FECHAS', 'asc')->get();
+            $infoTons = $infoTons->toArray();
+        } else {
+            $infoTons = DB::connection('sqlsrv2')->table('TBL_RINFORME_JUNTA_DUQ2')->orderBy('INF_D_FECHAS', 'asc')->get();
+            $infoTons = $infoTons->toArray();
+        }
         $infoTons = DB::connection('sqlsrv2')->table('TBL_RINFORME_JUNTA_DUQ2')->orderBy('INF_D_FECHAS','asc')->get();
         $infoTons= $infoTons->toArray();
-        $headers=['VENTAS (TONELADAS)', 'ACEITES TONELADAS', 'MARGARINAS TONELADAS', 'SOLIDOS Y CREMOSOS TONELADAS', 'TOTAL PT', 'INDUSTRIALES (OLEOQUIMICOS)', 
-            'OTROS (AGL-ACIDULADO)', 'SERVICIO MAQUILA'];
+        /* $headers=['VENTAS (TONELADAS)', 'ACEITES TONELADAS', 'MARGARINAS TONELADAS', 'SOLIDOS Y CREMOSOS TONELADAS', 'TOTAL PT', 'INDUSTRIALES (OLEOQUIMICOS)', 
+            'OTROS (AGL-ACIDULADO)', 'SERVICIO MAQUILA']; */
             $fomDates= [];
             $mes= [];
-
             foreach($infoTons as $info){
                 
                 $dateObject = DateTime::createFromFormat('m', $info->INF_D_MES)->format('F');
@@ -86,6 +91,6 @@ class ToneladasController extends Controller
             foreach($fomDates as $form){
                 $form = count($form);
             }
-            return view('Toneladas\list_tons',['headers'=>$headers, 'dates'=>$fomDates, 'mes'=>$mes, 'contador'=>$form ]);
+            return $fomDates;
+        }
     }
-}
