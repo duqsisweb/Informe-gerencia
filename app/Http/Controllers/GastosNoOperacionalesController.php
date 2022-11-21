@@ -2,15 +2,31 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Traits\GastosNoOperTrait;
+use App\Http\Traits\GastosOperUnitTrait;
+use App\Http\Traits\VentasNetasUnitTrait;
+use App\Http\Traits\VentasToneladasTrait;
 use DateTime;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class GastosNoOperacionalesController extends Controller
 {
-    public function nonOperatinals(){
-        $infoNoOpe = DB::connection('sqlsrv2')->table('TBL_RINFORME_JUNTA_DUQ')->orderBy('INF_D_FECHAS','asc')->get();
-        $infoNoOpe= $infoNoOpe->toArray();
+    use GastosNoOperTrait;
+    use VentasToneladasTrait;
+    use GastosOperUnitTrait;
+    use VentasNetasUnitTrait;
+    public function nonOperatinals(Request $request){
+        if($request->filter1 != null){
+            $fechaIni = $request->filter1.'-1';
+            $fechaFin = $request->filter2.'-1';
+            $infoGastos = DB::connection('sqlsrv2')->table('TBL_RINFORME_JUNTA_DUQ')->whereBetween('INF_D_FECHAS',[$fechaIni,$fechaFin])->orderBy('INF_D_FECHAS', 'asc')->get();
+            $infoGastos= $infoGastos->toArray();
+        }else{
+            $infoNoOpe = DB::connection('sqlsrv2')->table('TBL_RINFORME_JUNTA_DUQ')->orderBy('INF_D_FECHAS','asc')->get();
+            $infoNoOpe= $infoNoOpe->toArray();
+        }
+
         $headers=['FINANCIEROS', 'PORCENTAJE FINANCIEROS', 'RETIRO DE ACTIVOS (LEASE BACK - AJUSTE INVENTARIOS)',
             'PORCENTAJE RETIRO DE ACTIVOS', 'GRAVAMEN MOVIMIENTO FINANCIERO (4*1000)', 'PORCENTAJE GRAVAMEN MOVIMIENTO', 'OTROS', 
             'PORCENTAJE OTROS', 'TOTAL NO OPERACIONALES', 'PORCENTAJE TOTAL NO OPERACIONALES','UTILIDAD ANTES DE IMPUESTOS',
@@ -150,9 +166,23 @@ class GastosNoOperacionalesController extends Controller
         return view('NonOperatingExpenses\list_non_operating_expenses',['headers'=>$headers, 'dates'=>$fomDates, 'mes'=>$mes, 'contador'=>$form ]);
     }
 
-    public function unit_nonOperatinals(){
-        $infoNoOpe = DB::connection('sqlsrv2')->table('TBL_RINFORME_JUNTA_DUQ')->orderBy('INF_D_FECHAS','asc')->get();
-        $infoTons = DB::connection('sqlsrv2')->table('TBL_RINFORME_JUNTA_DUQ2')->orderBy('INF_D_FECHAS','asc')->get();
+    public function unit_nonOperatinals(Request $request){
+        if($request->filter1 != null){
+            $fechaIni = $request->filter1.'-1';
+            $fechaFin = $request->filter2.'-1';
+            $infoGastos = DB::connection('sqlsrv2')->table('TBL_RINFORME_JUNTA_DUQ')->whereBetween('INF_D_FECHAS',[$fechaIni,$fechaFin])->orderBy('INF_D_FECHAS', 'asc')->get();
+            $infoGastos= $infoGastos->toArray();
+            $infoTons = DB::connection('sqlsrv2')->table('TBL_RINFORME_JUNTA_DUQ2')->whereBetween('INF_D_FECHAS',[$fechaIni,$fechaFin])->orderBy('INF_D_FECHAS','asc')->get();
+            $infoTons= $infoTons->toArray();
+        }else{
+            $fechaIni = null;
+            $fechaFin = null;
+            $infoNoOpe = DB::connection('sqlsrv2')->table('TBL_RINFORME_JUNTA_DUQ')->orderBy('INF_D_FECHAS','asc')->get();
+            $infoNoOpe= $infoNoOpe->toArray();
+            $infoTons = DB::connection('sqlsrv2')->table('TBL_RINFORME_JUNTA_DUQ2')->orderBy('INF_D_FECHAS','asc')->get();
+            $infoTons= $infoTons->toArray();
+        }
+        
         $headers=['FINANCIEROS', 'PORCENTAJE FINANCIEROS', 'RETIRO DE ACTIVOS (LEASE BACK - AJUSTE INVENTARIOS)',
             'PORCENTAJE RETIRO DE ACTIVOS', 'GRAVAMEN MOVIMIENTO FINANCIERO (4*1000)', 'PORCENTAJE GRAVAMEN MOVIMIENTO', 'OTROS', 
             'PORCENTAJE OTROS', 'TOTAL NO OPERACIONALES', 'PORCENTAJE TOTAL NO OPERACIONALES','UTILIDAD ANTES DE IMPUESTOS',
@@ -214,11 +244,66 @@ class GastosNoOperacionalesController extends Controller
                         round($porceEbtida,2).'%' ]);
             
         }
-        //dd($formOper);
-        $form = 0;
-            foreach($formOper as $form){
-                $form = count($form);
+        array_push($mes,['mes'=>'ACUMULADO']);
+        array_push($mes,['mes'=> 'PROMEDIO']);
+
+        $noOperacionalesUnit= $this->tablaGastosNoOperacionales($fechaIni,$fechaFin);
+        $ventasToneladas= $this->TablaVentasToneladas($fechaIni,$fechaFin);
+        $gasOperacionalesUnit= $this->tablaGastosOperacionalesUnit($fechaIni,$fechaFin);
+        $ventasNetasUnitarias= $this->TablaVentasUnit($fechaIni,$fechaFin);
+        
+
+        $acumulados=[];
+        for($i=0;$i<count($noOperacionalesUnit[11])-7;$i++){
+            if ($i%2==0){
+                $ac= intval(round($noOperacionalesUnit[11][$i]/$ventasToneladas[11][0]));
+                $pr= round($ac/$ventasNetasUnitarias[11][7],2).'%';
+                array_push($acumulados,$ac);
+                array_push($acumulados,$pr);
             }
-        return view('NonOperatingExpenses\list_non_operating_expensesUnit',['headers'=>$headers, 'dates'=>$formOper, 'mes'=>$mes, 'contador'=>$form ]);
+        }
+        $acumTotNoOper= $acumulados[0]+$acumulados[2]+$acumulados[4]+$acumulados[6];
+        $porceAcumTotNoOper = round($acumTotNoOper/$ventasNetasUnitarias[11][7],2).'%';
+        $acumUtilAntImp= $gasOperacionalesUnit[11][32]-$acumTotNoOper;
+        $porceAcumUtilAntImp= round($acumUtilAntImp/$ventasNetasUnitarias[11][7],2).'%';
+        $acumEbtidaUnit= round($noOperacionalesUnit[11][12]/$ventasToneladas[11][0],2);
+        $porceEbtidaUnit= round($acumEbtidaUnit/$ventasNetasUnitarias[11][7],2).'%';
+        array_push($acumulados, $acumTotNoOper);
+        array_push($acumulados, $porceAcumTotNoOper);
+        array_push($acumulados, $acumUtilAntImp);
+        array_push($acumulados, $porceAcumUtilAntImp);
+        array_push($acumulados, $acumEbtidaUnit);
+        array_push($acumulados, $porceEbtidaUnit);
+
+
+
+        $promedios=[];
+        for($i=0;$i<count($noOperacionalesUnit[12])-7;$i++){
+            if ($i%2==0){
+            $prom= intval(round($noOperacionalesUnit[12][$i]/$ventasToneladas[12][0]));
+            $porce= round( $prom/$ventasNetasUnitarias[12][7],2).'%';
+            array_push($promedios,$prom);
+            array_push($promedios,$porce);
+        }
+    }
+
+    $promTotNoOper= $promedios[0]+$promedios[2]+$promedios[4]+$promedios[6];
+    $porcePromTotNoOper= round($promTotNoOper/$ventasNetasUnitarias[12][7],2).'%';
+    array_push($promedios,$promTotNoOper);
+    array_push($promedios,$porcePromTotNoOper);
+    $promUtilAntImp= $gasOperacionalesUnit[12][32]-$promTotNoOper;
+    $porcePromUtilAntImp= round($promUtilAntImp/$ventasNetasUnitarias[12][7],2).'%';
+    array_push($promedios,$promUtilAntImp);
+    array_push($promedios,$porcePromUtilAntImp);
+    $promEbtidaUnit= round($noOperacionalesUnit[12][12]/$ventasToneladas[12][0]);
+    $porcePromEbtidaUnit= round($promEbtidaUnit/$ventasNetasUnitarias[12][7],2).'%';
+    array_push($promedios,$promEbtidaUnit);
+    array_push($promedios,$porcePromEbtidaUnit);
+
+
+        
+        array_push($formOper, $acumulados);
+        array_push($formOper, $promedios);
+        return view('NonOperatingExpenses\list_non_operating_expensesUnit',['headers'=>$headers, 'dates'=>$formOper, 'mes'=>$mes, 'contador'=>count($formOper[0]) ]);
     }
 }

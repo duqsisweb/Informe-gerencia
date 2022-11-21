@@ -190,16 +190,17 @@ trait CostosUnitTrait {
         $suma = 0;
         for ($i = 0; $i < count($ttven); $i++) {
             $suma += $ttven[$i];
-            $promVenNetT= intval(round($suma/ count($infoCosts)));
+            $promVenNetT= intval(round($suma/ count($infoCosts),2).'%');
         }
         $resPromVenNe= $promVenNetT-$promVenNe[5];
         $t127= intval(round($promCosVen[6]/$promTonsTot[6]));
         $t113= intval(round($resPromVenNe/$promTonsTot[6]));
         $t129= intval(round($t113-$t127));
         array_push($promedios,$t127);
-        array_push($promedios,$t127/$t113);
+        array_push($promedios,round($t127/$t113,2).'%');
         array_push($promedios,$t129);
-        array_push($promedios,$t129/$t113);
+        $porceUtilBruUnit= round($t129/$t113,2);
+        array_push($promedios,$porceUtilBruUnit.'%');
         //dd($promedios);
         
         

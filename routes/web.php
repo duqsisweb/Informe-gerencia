@@ -28,7 +28,8 @@ Route::group(['prefix' => 'admin'], function () {
     Voyager::routes();
     Route::get('ventas/totales', [VentasNetasController::class, 'total_sales']);
     Route::post('ventas/filter', [VentasNetasController::class, 'total_sales']);
-    Route::get('ventas/costos', [CostosVentasController::class, 'total_costs']);
+    Route::get('costos', [CostosVentasController::class, 'total_costs']);
+    Route::post('costos/filter', [CostosVentasController::class, 'total_costs']);
     Route::get('gastos/operacionales', [GastosOperacionalesController::class, 'operational_expenses']);
     Route::get('gastos/NoOper', [GastosNoOperacionalesController::class, 'nonOperatinals']);
     Route::get('ventas/Toneladas', [ToneladasController::class, 'tons']);

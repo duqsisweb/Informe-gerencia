@@ -230,13 +230,24 @@ class GastosOperacionalesController extends Controller
 
 
 
-   public function unit_operational_expenses()
+   public function unit_operational_expenses(Request $request)
    {
+      if($request->filter1 != null){
+         $fechaIni = $request->filter1.'-1';
+         $fechaFin = $request->filter2.'-1';
+         $infoGastosUn = DB::connection('sqlsrv2')->table('TBL_RINFORME_JUNTA_DUQ')->whereBetween('INF_D_FECHAS',[$fechaIni,$fechaFin])->orderBy('INF_D_FECHAS', 'asc')->get();
+         $infoGastosUn= $infoGastosUn->toArray();
+         $infoTonsUn = DB::connection('sqlsrv2')->table('TBL_RINFORME_JUNTA_DUQ2')->whereBetween('INF_D_FECHAS',[$fechaIni,$fechaFin])->orderBy('INF_D_FECHAS', 'asc')->get();
+         $infoTonsUn= $infoTonsUn->toArray();
+     }else{
+         $fechaIni = null;
+         $fechaFin = null;
+         $infoGastosUn = DB::connection('sqlsrv2')->table('TBL_RINFORME_JUNTA_DUQ')->orderBy('INF_D_FECHAS', 'asc')->get();
+         $infoGastosUn = $infoGastosUn->toArray();
+         $infoTonsUn = DB::connection('sqlsrv2')->table('TBL_RINFORME_JUNTA_DUQ2')->orderBy('INF_D_FECHAS', 'asc')->get();
+         $infoTonsUn= $infoTonsUn->toArray();
+     }
 
-      $infoGastosUn = DB::connection('sqlsrv2')->table('TBL_RINFORME_JUNTA_DUQ')->orderBy('INF_D_FECHAS', 'asc')->get();
-      $infoGastosUn= $infoGastosUn->toArray();
-      $infoTonsUn = DB::connection('sqlsrv2')->table('TBL_RINFORME_JUNTA_DUQ2')->orderBy('INF_D_FECHAS', 'asc')->get();
-      $infoTonsUn= $infoTonsUn->toArray();
       $headers= ['GASTOS DE ADMINISTRACION','PORCENTAJE GASTOS DE ADMINISTRACION','GATOS DE PERSONAL','PORCENTAJE GATOS DE PERSONAL','HONORARIOS','PORCENTAJE HONORARIOS',
    'SERVICIOS','PORCENTAJE SERVICIOS','OTROS','PORCENTAJE OTROS','GASTOS DE VENTAS','PORCENTAJE GASTOS DE VENTAS','GATOS DE PERSONAL','PORCENTAJE GATOS DE PERSONAL','POLIZA CARTERA',
    'PORCENTAJE POLIZA CARTERA','FLETES','PORCENTAJE FLETES','SERVICIO LOGISTICO','PORCENTAJE SERVICIO LOGISTICO','ESTRATEGIA COMERCIAL','PORCENTAJE ESTRATEGIA COMERCIAL','IMPUESTOS',
@@ -378,17 +389,31 @@ class GastosOperacionalesController extends Controller
       array_push($acumulados, $acumUtilOperUnit);
       array_push($acumulados, round($porceAcumUtilOperUnit,2).'%');
       //fin acumulados
-      dd($ventastoneladas, $ventastoneladas[12][0]);
+      //dd($ventastoneladas, $ventastoneladas[12][0]);
+
+
 
       $promedios=[];
       for($i=0;$i<count($gastosOperacionales[12])-4;$i++){
          if ($i%2==0){
             $promGasAdmin= intval(round($gastosOperacionales[12][$i]/$ventastoneladas[12][0]));
+            $porcePromGas= round($promGasAdmin*100/$ventasNetasUnitarios[12][7],2).'%';
             array_push($promedios,$promGasAdmin);
-        }
+            array_push($promedios,$porcePromGas);
+         }
       }
-      
+      $promTotalGasOper= $promedios[0]+$promedios[10]+$promedios[28];
+      $promPorceTotalGasOper= round($promTotalGasOper*100/$ventasNetasUnitarios[12][7],2).'%';
+      $promUtilOperUnit= $costosVentasUnitarios[12][18]-$promTotalGasOper;
+      $promPorceUtilOperUnit= round($promUtilOperUnit*100/$ventasNetasUnitarios[12][7],2).'%';
+      array_push($promedios,$promTotalGasOper);
+      array_push($promedios,$promPorceTotalGasOper);
+      array_push($promedios,$promUtilOperUnit);
+      array_push($promedios,$promPorceUtilOperUnit);
+
+
       array_push($formOper, $acumulados);
+      array_push($formOper, $promedios);
       return view('OperationalExpenses\list_operational_expensesUnit', ['headers' => $headers, 'dates' => $formOper, 'mes' => $mes, 'contador' => count($formOper[0])]);
    }
 
