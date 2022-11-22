@@ -3,7 +3,7 @@
 
 <div class="content">
     <div class="text-center">
-        <h1>VENTAS TOTALES</h1>
+        <h1>VENTAS TOTALES UNITARIAS</h1>
         <br>
         <form action="filterUnitS" method="POST" class="form-row mb-4">
             @csrf

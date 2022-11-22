@@ -8,25 +8,20 @@ trait VentasToneladasTrait {
     
     public function TablaVentasToneladas($fechaIni, $fechaFin) {
         if ($fechaIni != null) {
-            $fechaIni = $fechaIni . '-1';
-            $fechaFin = $fechaFin. '-1';
-            $infoTons = DB::connection('sqlsrv2')->table('TBL_RINFORME_JUNTA_DUQ')->whereBetween('INF_D_FECHAS', [$fechaIni, $fechaFin])->orderBy('INF_D_FECHAS', 'asc')->get();
+            $fechaIni = $fechaIni;
+            $fechaFin = $fechaFin;
+            $infoTons = DB::connection('sqlsrv2')->table('TBL_RINFORME_JUNTA_DUQ2')->whereBetween('INF_D_FECHAS', [$fechaIni, $fechaFin])->orderBy('INF_D_FECHAS', 'asc')->get();
             $infoTons = $infoTons->toArray();
         } else {
             $infoTons = DB::connection('sqlsrv2')->table('TBL_RINFORME_JUNTA_DUQ2')->orderBy('INF_D_FECHAS', 'asc')->get();
             $infoTons = $infoTons->toArray();
+            $fechaIni = null;
+            $fechaFin = null;
         }
-        $infoTons = DB::connection('sqlsrv2')->table('TBL_RINFORME_JUNTA_DUQ2')->orderBy('INF_D_FECHAS','asc')->get();
-        $infoTons= $infoTons->toArray();
-        /* $headers=['VENTAS (TONELADAS)', 'ACEITES TONELADAS', 'MARGARINAS TONELADAS', 'SOLIDOS Y CREMOSOS TONELADAS', 'TOTAL PT', 'INDUSTRIALES (OLEOQUIMICOS)', 
-            'OTROS (AGL-ACIDULADO)', 'SERVICIO MAQUILA']; */
             $fomDates= [];
-            $mes= [];
             foreach($infoTons as $info){
-                
-                $dateObject = DateTime::createFromFormat('m', $info->INF_D_MES)->format('F');
-                $aceitesOP= round($info->TON_ACEITES,5);
-                $aceites= round($info->TON_ACEITES,5);
+                $aceitesOP= round($info->TON_ACEITES);
+                $aceites= round($info->TON_ACEITES);
                 $margarinasOP= round($info->TON_MARGARINAS,5);
                 $margarinas= round($info->TON_MARGARINAS,5);
                 $soliCremOP= round($info->TON_SOLIDOS_CREMOSOS,5);
@@ -40,13 +35,10 @@ trait VentasToneladasTrait {
              
                 array_push($fomDates,[$ventTon,intval($aceites), intval($margarinas),intval($soliCrem), $totPt, $tonIndOl,$acGrAccid,
                 $servMaqu ]);
-                array_push($mes,['mes'=>$dateObject]);
             }
-            array_push($mes, ['mes' => 'ACUMULADO']);
-            array_push($mes, ['mes' => 'PROMEDIO']);
             $sumados=[];
             foreach($infoTons as $ton){
-                $aceitesT= round($ton->TON_ACEITES,5);
+                $aceitesT= round($ton->TON_ACEITES);
                 $margarinasT= round($ton->TON_MARGARINAS,5);
                 $soliCremT= round($ton->TON_SOLIDOS_CREMOSOS,5);
                 $tonIndOlT= round($ton->TON_INDUSTRIALES_OLEO,5);

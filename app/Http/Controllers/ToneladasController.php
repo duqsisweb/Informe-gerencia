@@ -9,19 +9,29 @@ use Illuminate\Support\Facades\DB;
 
 class ToneladasController extends Controller
 {
-    public function tons(){
-        $infoTons = DB::connection('sqlsrv2')->table('TBL_RINFORME_JUNTA_DUQ2')->orderBy('INF_D_FECHAS','asc')->get();
-        $infoTons= $infoTons->toArray();
+    public function tons(Request $request){
+        if ($request->filter1 != null) {
+            $fechaIni = $request->filter1 . '-1';
+            $fechaFin = $request->filter2 . '-1';
+            $infoTons = DB::connection('sqlsrv2')->table('TBL_RINFORME_JUNTA_DUQ2')->whereBetween('INF_D_FECHAS', [$fechaIni, $fechaFin])->orderBy('INF_D_FECHAS', 'asc')->get();
+            $infoTons = $infoTons->toArray();
+        } else {
+            $fechaIni = null;
+            $fechaFin = null;
+            $infoTons = DB::connection('sqlsrv2')->table('TBL_RINFORME_JUNTA_DUQ2')->orderBy('INF_D_FECHAS','asc')->get();
+            $infoTons= $infoTons->toArray();
+        }
         $headers=['VENTAS (TONELADAS)', 'ACEITES TONELADAS', 'MARGARINAS TONELADAS', 'SOLIDOS Y CREMOSOS TONELADAS', 'TOTAL PT', 'INDUSTRIALES (OLEOQUIMICOS)', 
             'OTROS (AGL-ACIDULADO)', 'SERVICIO MAQUILA'];
             $fomDates= [];
             $mes= [];
 
+            $c = 1;
             foreach($infoTons as $info){
-                
+                if ($c == 3 || $c == 7 || $c == 11 || $c == 15) {
                 $dateObject = DateTime::createFromFormat('m', $info->INF_D_MES)->format('F');
-                $aceitesOP= round($info->TON_ACEITES,5);
-                $aceites= round($info->TON_ACEITES,5);
+                $aceitesOP= round($info->TON_ACEITES);
+                $aceites= round($info->TON_ACEITES);
                 $margarinasOP= round($info->TON_MARGARINAS,5);
                 $margarinas= round($info->TON_MARGARINAS,5);
                 $soliCremOP= round($info->TON_SOLIDOS_CREMOSOS,5);
@@ -32,10 +42,86 @@ class ToneladasController extends Controller
                 $acGrAccid= round($info->TON_ACIDOS_GRASOS_ACIDULADO,5);
                 $servMaqu= round($info->TON_SERVICIO_MAQUILA,5);
                 $ventTon= $totPt+$tonIndOl+$acGrAccid;
-             
-                array_push($fomDates,[$ventTon,intval($aceites), intval($margarinas),intval($soliCrem), $totPt, $tonIndOl,$acGrAccid,
+                array_push($fomDates,[$ventTon,$aceites, intval($margarinas),intval($soliCrem), $totPt, $tonIndOl,$acGrAccid,
                 $servMaqu ]);
                 array_push($mes,['mes'=>$dateObject]);
+                array_push($mes, ['mes' => 'TRIMESTRE']);
+                $formEdit = $fomDates;
+                switch ($c) {
+                    case $c <= 3:
+                        $formEdit = $fomDates;
+                        $sumaProm = [];
+                        for ($i = 0; $i < count($formEdit[0]); $i++) {
+                            $suma = 0;
+                            foreach ($formEdit as $prom) {
+                                $suma += round($prom[$i]);
+                            }
+                            array_push($sumaProm, intval(round($suma / 3)));
+                        }
+                        array_push($fomDates, $sumaProm);
+                        $c++;
+                        break;
+                    case $c > 3 && $c <= 7:
+                        $formEdit1 = array_slice($fomDates,4,3);
+                        $sumaProm = [];
+                        for ($i = 0; $i < count($formEdit1[0]); $i++) {
+                            $suma = 0;
+                            foreach ($formEdit1 as $prom) {
+                                $suma += $prom[$i];
+                            }
+                            array_push($sumaProm, intval(round($suma / 3)));
+                        }
+                        array_push($fomDates, $sumaProm);
+                        $c++;
+                        break;
+                    case $c > 7 && $c <= 11:
+                        $formEdit2 = array_slice($fomDates,8,3);
+                        $sumaProm = [];
+                        for ($i = 0; $i < count($formEdit2[0]); $i++) {
+                            $suma = 0;
+                            foreach ($formEdit2 as $prom) {
+                                $suma += $prom[$i];
+                            }
+                            array_push($sumaProm, intval(round($suma / 3)));
+                        }
+                        array_push($fomDates, $sumaProm);
+                        $c++;
+                        break;
+                    case $c > 11 :
+                        $formEdit3 = array_slice($fomDates,12,3);
+                        $sumaProm = [];
+                        for ($i = 0; $i < count($formEdit3[0]); $i++) {
+                            $suma = 0;
+                            foreach ($formEdit3 as $prom) {
+                                $suma += $prom[$i];
+                            }
+                            array_push($sumaProm, intval(round($suma / 3)));
+                        }
+                        array_push($fomDates, $sumaProm);
+                        $c++;
+                        break;
+                }
+                    $c++;
+                }else{
+                    $dateObject = DateTime::createFromFormat('m', $info->INF_D_MES)->format('F');
+                    $aceitesOP= round($info->TON_ACEITES);
+                    $aceites= round($info->TON_ACEITES);
+                    $margarinasOP= round($info->TON_MARGARINAS,5);
+                    $margarinas= round($info->TON_MARGARINAS,5);
+                    $soliCremOP= round($info->TON_SOLIDOS_CREMOSOS,5);
+                    $soliCrem= round($info->TON_SOLIDOS_CREMOSOS,5);
+                    $totNrm= $aceites+$margarinas+$soliCrem;
+                    $totPt= $aceitesOP+$margarinasOP+$soliCremOP;
+                    $tonIndOl= round($info->TON_INDUSTRIALES_OLEO,5);
+                    $acGrAccid= round($info->TON_ACIDOS_GRASOS_ACIDULADO,5);
+                    $servMaqu= round($info->TON_SERVICIO_MAQUILA,5);
+                    $ventTon= $totPt+$tonIndOl+$acGrAccid;
+                 
+                    array_push($fomDates,[$ventTon,intval($aceites), intval($margarinas),intval($soliCrem), $totPt, $tonIndOl,$acGrAccid,
+                    $servMaqu ]);
+                    array_push($mes,['mes'=>$dateObject]);
+                    $c++;
+                }
             }
             array_push($mes, ['mes' => 'ACUMULADO']);
             array_push($mes, ['mes' => 'PROMEDIO']);

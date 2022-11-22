@@ -11,8 +11,8 @@ trait CostosUnitTrait {
     public function TablaCostosUnit($fechaIni, $fechaFin)
     {
         if($fechaIni != null){
-            $fechaIni = $fechaIni.'-1';
-            $fechaFin = $fechaFin.'-1';
+            $fechaIni = $fechaIni;
+            $fechaFin = $fechaFin;
             $infoCosts = DB::connection('sqlsrv2')->table('TBL_RINFORME_JUNTA_DUQ')->whereBetween('INF_D_FECHAS',[$fechaIni,$fechaFin])->orderBy('INF_D_FECHAS', 'asc')->get();
             $infoCosts= $infoCosts->toArray();
             $infoUnits = DB::connection('sqlsrv2')->table('TBL_RINFORME_JUNTA_DUQ2')->whereBetween('INF_D_FECHAS',[$fechaIni,$fechaFin])->orderBy('INF_D_FECHAS', 'asc')->get();
@@ -22,6 +22,8 @@ trait CostosUnitTrait {
             $infoCosts = $infoCosts->toArray();
             $infoUnits = DB::connection('sqlsrv2')->table('TBL_RINFORME_JUNTA_DUQ2')->orderBy('INF_D_FECHAS', 'asc')->get();            
             $infoUnits= $infoUnits->toArray();
+            $fechaIni = null;
+            $fechaFin = null;
         }
 
         $data1 = [];

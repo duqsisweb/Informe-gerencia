@@ -13,8 +13,8 @@ trait VentasNetasUnitTrait
     public function TablaVentasUnit($fechaIni, $fechaFin)
     {
         if ($fechaIni != null) {
-            $fechaIni = $fechaIni . '-1';
-            $fechaFin = $fechaFin. '-1';
+            $fechaIni = $fechaIni;
+            $fechaFin = $fechaFin;
             $infoSales = DB::connection('sqlsrv2')->table('TBL_RINFORME_JUNTA_DUQ')->whereBetween('INF_D_FECHAS', [$fechaIni, $fechaFin])->orderBy('INF_D_FECHAS', 'asc')->get();
             $infoSales = $infoSales->toArray();
             $infoTons = DB::connection('sqlsrv2')->table('TBL_RINFORME_JUNTA_DUQ2')->whereBetween('INF_D_FECHAS', [$fechaIni, $fechaFin])->orderBy('INF_D_FECHAS', 'asc')->get();
@@ -24,6 +24,8 @@ trait VentasNetasUnitTrait
             $infoSales = $infoSales->toArray();
             $infoTons = DB::connection('sqlsrv2')->table('TBL_RINFORME_JUNTA_DUQ2')->orderBy('INF_D_FECHAS', 'asc')->get();
             $infoTons = $infoTons->toArray();
+            $fechaIni = null;
+            $fechaFin = null;
         }
         $infos = [];
         $infoTs = [];

@@ -11,60 +11,262 @@ trait GastosNoOperTrait
     public function tablaGastosNoOperacionales($fechaIni, $fechaFin)
     {
 
-        if($fechaIni != null){
-            $fechaIni = $fechaIni.'-1';
-            $fechaFin = $fechaFin.'-1';
+        if ($fechaIni != null) {
+            $fechaIni = $fechaIni;
+            $fechaFin = $fechaFin;
             $infoGastos = DB::connection('sqlsrv2')->table('TBL_RINFORME_JUNTA_DUQ')->whereBetween('INF_D_FECHAS', [$fechaIni, $fechaFin])->orderBy('INF_D_FECHAS', 'asc')->get();
             $infoGastos = $infoGastos->toArray();
         } else {
             $infoNoOpe = DB::connection('sqlsrv2')->table('TBL_RINFORME_JUNTA_DUQ')->orderBy('INF_D_FECHAS', 'asc')->get();
             $infoNoOpe = $infoNoOpe->toArray();
+            $fechaIni = null;
+            $fechaFin = null;
         }
 
         $fomDates = [];
+        $c = 1;
         foreach ($infoNoOpe as $data) {
-            $infoACEITES =  round($data->ACEITES, 5);
-            $infoMARGARINAS =  round($data->MARGARINAS, 5);
-            $infoSOLIDOS_CREMOSOS =  round($data->SOLIDOS_CREMOSOS, 5);
-            //informacion general tabla de ventas netas
-            $infoINDUSTRIALES =  round($data->INDUSTRIALES, 5);
-            $infoOTROS =  round($data->ACIDOS_GRASOS_ACIDULADO, 5);
-            $infoSERVICIO_MAQUILA =  round($data->SERVICIO_MAQUILA, 5);
-            //consulta alterna
-            $TOTALP = intval($infoACEITES + $infoMARGARINAS + $infoSOLIDOS_CREMOSOS);
-            $TOTALO = intval($infoINDUSTRIALES + $infoOTROS + $infoSERVICIO_MAQUILA);
-            $TOTALV = intval($TOTALP + $TOTALO);
-            // fin consulta
-            $infoTOTP = intval(round($data->SOLIDOS_CREMOSOS2 + $data->MARGARINAS2 + $data->ACEITES2));
-            $depreAmorti = round($data->DEPRECIACIONES_AMORTIZACIONES);
-            $gasVentas = round($data->GASTOS_VENTAS, 2);
-            $gastAdmin = round($data->GASTOS_ADMINISTRACION, 5);
-            $TOTSUMOTR = $TOTALO + $infoTOTP;
-            $totGasOper = +$gastAdmin + $gasVentas + $depreAmorti;
-            $UTLBRUTA = +$TOTALV - $TOTSUMOTR;
-            $UtilOper = $UTLBRUTA - $totGasOper;
+            if ($c == 3 || $c == 7 || $c == 11 || $c == 15) {
+                $infoACEITES =  round($data->ACEITES, 5);
+                $infoMARGARINAS =  round($data->MARGARINAS, 5);
+                $infoSOLIDOS_CREMOSOS =  round($data->SOLIDOS_CREMOSOS, 5);
+                $infoINDUSTRIALES =  round($data->INDUSTRIALES, 5);
+                $infoOTROS =  round($data->ACIDOS_GRASOS_ACIDULADO, 5);
+                $infoSERVICIO_MAQUILA =  round($data->SERVICIO_MAQUILA, 5);
+                $TOTALP = intval($infoACEITES + $infoMARGARINAS + $infoSOLIDOS_CREMOSOS);
+                $TOTALO = intval($infoINDUSTRIALES + $infoOTROS + $infoSERVICIO_MAQUILA);
+                $TOTALV = intval($TOTALP + $TOTALO);
+                $infoTOTP = intval(round($data->SOLIDOS_CREMOSOS2 + $data->MARGARINAS2 + $data->ACEITES2));
+                $depreAmorti = round($data->DEPRECIACIONES_AMORTIZACIONES);
+                $gasVentas = round($data->GASTOS_VENTAS, 2);
+                $gastAdmin = round($data->GASTOS_ADMINISTRACION, 5);
+                $TOTSUMOTR = $TOTALO + $infoTOTP;
+                $totGasOper = +$gastAdmin + $gasVentas + $depreAmorti;
+                $UTLBRUTA = +$TOTALV - $TOTSUMOTR;
+                $UtilOper = $UTLBRUTA - $totGasOper;
+                $finan = intval(round($data->FINANCIEROS, 2));
+                $porceFinan = round($finan * 100 / $TOTALV, 2) . '%';
+                $retActiv = intval(round($data->RETIRO_ACTIVOS));
+                $porceActiv = round($retActiv * 100 / $TOTALV, 2) . '%';
+                $gravFinan = intval(round($data->GRAVA_MOV_FINANCIERO));
+                $porceGravFin = round($gravFinan * 100 / $TOTALV, 2) . '%';
+                $otros = intval(round($data->OTROS));
+                $porceOtros = round($otros * 100 / $TOTALV, 2) . '%';
+                $totlNoOp = $finan + $retActiv + $gravFinan + $otros;
+                $porceTotlNoOp = round($totlNoOp * 100 / $TOTALV, 2) . '%';
+                $utilAntImp =   $UtilOper - $totlNoOp;
+                $porceUtilAntImp = round($utilAntImp * 100 / $TOTALV, 2) . '%';
+                $ebitda = intval(round($data->EBITDA));
+                $porceEbtida = round($ebitda * 100 / $TOTALV, 2) . '%';
+                $dateObject = DateTime::createFromFormat('m', $data->INF_D_MES)->format('F');
+                array_push($fomDates, [
+                    $finan, $porceFinan, $retActiv, $porceActiv, $gravFinan, $porceGravFin, $otros, $porceOtros,
+                    $totlNoOp, $porceTotlNoOp, $utilAntImp, $porceUtilAntImp, $ebitda, $porceEbtida
+                ]);
+                array_push($mes, ['mes' => $dateObject]);
+                array_push($mes, ['mes' => 'TRIMESTRE']);
+                switch ($c) {
+                    case $c <= 3:
+                        $ventasNetasTabla = $this->TablaVentas($fechaIni, $fechaFin);
+                        $ventasNetasTabla = array_slice($ventasNetasTabla, 0, 3);
+                        $sumaVentas = [];
+                        for ($i = 0; $i < count($ventasNetasTabla[0]); $i++) {
+                            $suma = 0;
+                            foreach ($ventasNetasTabla as $prom) {
+                                $suma += $prom[$i];
+                            }
+                            array_push($sumaVentas, intval(round($suma / 3)));
+                        }
 
+                        $formEdit = $fomDates;
+                        $sumaCostos = [];
+                        for ($i = 0; $i < count($formEdit[0]); $i++) {
+                            $suma = 0;
+                            foreach ($formEdit as $prom) {
+                                if ($i % 2 == 0) {
+                                    $suma += $prom[$i];
+                                }
+                            }
+                            array_push($sumaCostos, intval(round($suma / 3)));
+                        }
+                        $cuenta = count($sumaCostos);
+                        for ($i = 0; $i < $cuenta; $i++) {
+                            if ($i % 2 == 0) {
+                            } else {
+                                unset($sumaCostos[$i]);
+                            }
+                        }
+                        $sumaCostos = array_values($sumaCostos);
+                        $sumfinals = [];
+                        for ($i = 0; $i < count($sumaCostos); $i++) {
+                            array_push($sumfinals, $sumaCostos[$i]);
+                            array_push($sumfinals, round($sumaCostos[$i] * 100 / $sumaVentas[8], 2) . '%');
+                        }
+                        array_push($fomDates, $sumfinals);
+                        $c++;
+                        break;
+                    case $c > 3 && $c < 8:
+                        $formEdit1 = array_slice($fomDates, 4, 3);
+                        $ventasNetasTabla = $this->TablaVentas($fechaIni, $fechaFin);
+                        $ventasNetasTabla = array_slice($ventasNetasTabla, 3, 3);
+                        $sumaVentas = [];
+                        for ($i = 0; $i < count($ventasNetasTabla[0]); $i++) {
+                            $suma = 0;
+                            foreach ($ventasNetasTabla as $prom) {
+                                $suma += $prom[$i];
+                            }
+                            array_push($sumaVentas, intval(round($suma / 3)));
+                        }
 
-            $finan = intval(round($data->FINANCIEROS, 2));
-            $porceFinan = round($finan * 100 / $TOTALV, 2) . '%';
-            $retActiv = intval(round($data->RETIRO_ACTIVOS));
-            $porceActiv = round($retActiv * 100 / $TOTALV, 2) . '%';
-            $gravFinan = intval(round($data->GRAVA_MOV_FINANCIERO));
-            $porceGravFin = round($gravFinan * 100 / $TOTALV, 2) . '%';
-            $otros = intval(round($data->OTROS));
-            $porceOtros = round($otros * 100 / $TOTALV, 2) . '%';
-            $totlNoOp = $finan + $retActiv + $gravFinan + $otros;
-            $porceTotlNoOp = round($totlNoOp * 100 / $TOTALV, 2) . '%';
-            $utilAntImp =   $UtilOper - $totlNoOp;
-            $porceUtilAntImp = round($utilAntImp * 100 / $TOTALV, 2) . '%';
-            $ebitda = intval(round($data->EBITDA));
-            $porceEbtida = round($ebitda * 100 / $TOTALV, 2) . '%';
-            $dateObject = DateTime::createFromFormat('m', $data->INF_D_MES)->format('F');
+                        $formEdit = $fomDates;
+                        $sumaCostos = [];
+                        for ($i = 0; $i < count($formEdit1[0]); $i++) {
+                            $suma = 0;
+                            foreach ($formEdit1 as $prom) {
+                                if ($i % 2 == 0) {
+                                    $suma += $prom[$i];
+                                }
+                            }
+                            array_push($sumaCostos, intval(round($suma / 3)));
+                        }
+                        $cuenta = count($sumaCostos);
+                        for ($i = 0; $i < $cuenta; $i++) {
+                            if ($i % 2 == 0) {
+                            } else {
+                                unset($sumaCostos[$i]);
+                            }
+                        }
+                        $sumaCostos = array_values($sumaCostos);
+                        $sumfinals = [];
+                        for ($i = 0; $i < count($sumaCostos); $i++) {
+                            array_push($sumfinals, $sumaCostos[$i]);
+                            array_push($sumfinals, round($sumaCostos[$i] * 100 / $sumaVentas[8], 2) . '%');
+                        }
+                        array_push($fomDates, $sumfinals);
+                        $c++;
+                        break;
+                    case $c > 7 && $c <= 11:
+                        $formEdit2 = array_slice($fomDates, 8, 3);
+                        $ventasNetasTabla = $this->TablaVentas($fechaIni, $fechaFin);
+                        $ventasNetasTabla = array_slice($ventasNetasTabla, 6, 3);
+                        $sumaVentas = [];
+                        for ($i = 0; $i < count($ventasNetasTabla[0]); $i++) {
+                            $suma = 0;
+                            foreach ($ventasNetasTabla as $prom) {
+                                $suma += $prom[$i];
+                            }
+                            array_push($sumaVentas, intval(round($suma / 3)));
+                        }
 
-            array_push($fomDates, [
-                $finan, $porceFinan, $retActiv, $porceActiv, $gravFinan, $porceGravFin, $otros, $porceOtros,
-                $totlNoOp, $porceTotlNoOp, $utilAntImp, $porceUtilAntImp, $ebitda, $porceEbtida
-            ]);
+                        $formEdit = $fomDates;
+                        $sumaCostos = [];
+                        for ($i = 0; $i < count($formEdit2[0]); $i++) {
+                            $suma = 0;
+                            foreach ($formEdit2 as $prom) {
+                                if ($i % 2 == 0) {
+                                    $suma += $prom[$i];
+                                }
+                            }
+                            array_push($sumaCostos, intval(round($suma / 3)));
+                        }
+                        $cuenta = count($sumaCostos);
+                        for ($i = 0; $i < $cuenta; $i++) {
+                            if ($i % 2 == 0) {
+                            } else {
+                                unset($sumaCostos[$i]);
+                            }
+                        }
+                        $sumaCostos = array_values($sumaCostos);
+                        $sumfinals = [];
+                        for ($i = 0; $i < count($sumaCostos); $i++) {
+                            array_push($sumfinals, $sumaCostos[$i]);
+                            array_push($sumfinals, round($sumaCostos[$i] * 100 / $sumaVentas[8], 2) . '%');
+                        }
+                        array_push($fomDates, $sumfinals);
+                        $c++;
+                        break;
+                    case $c > 11:
+                        $formEdit2 = array_slice($fomDates, 12, 3);
+                        $ventasNetasTabla = $this->TablaVentas($fechaIni, $fechaFin);
+                        $ventasNetasTabla = array_slice($ventasNetasTabla, 9, 3);
+                        $sumaVentas = [];
+                        for ($i = 0; $i < count($ventasNetasTabla[0]); $i++) {
+                            $suma = 0;
+                            foreach ($ventasNetasTabla as $prom) {
+                                $suma += $prom[$i];
+                            }
+                            array_push($sumaVentas, intval(round($suma / 3)));
+                        }
+
+                        $formEdit = $fomDates;
+                        $sumaCostos = [];
+                        for ($i = 0; $i < count($formEdit2[0]); $i++) {
+                            $suma = 0;
+                            foreach ($formEdit2 as $prom) {
+                                if ($i % 2 == 0) {
+                                    $suma += $prom[$i];
+                                }
+                            }
+                            array_push($sumaCostos, intval(round($suma / 3)));
+                        }
+                        $cuenta = count($sumaCostos);
+                        for ($i = 0; $i < $cuenta; $i++) {
+                            if ($i % 2 == 0) {
+                            } else {
+                                unset($sumaCostos[$i]);
+                            }
+                        }
+                        $sumaCostos = array_values($sumaCostos);
+                        $sumfinals = [];
+                        for ($i = 0; $i < count($sumaCostos); $i++) {
+                            array_push($sumfinals, $sumaCostos[$i]);
+                            array_push($sumfinals, round($sumaCostos[$i] * 100 / $sumaVentas[8], 2) . '%');
+                        }
+                        array_push($fomDates, $sumfinals);
+                        $c++;
+                        break;
+                }
+                $c++;
+            } else {
+                $infoACEITES =  round($data->ACEITES, 5);
+                $infoMARGARINAS =  round($data->MARGARINAS, 5);
+                $infoSOLIDOS_CREMOSOS =  round($data->SOLIDOS_CREMOSOS, 5);
+                $infoINDUSTRIALES =  round($data->INDUSTRIALES, 5);
+                $infoOTROS =  round($data->ACIDOS_GRASOS_ACIDULADO, 5);
+                $infoSERVICIO_MAQUILA =  round($data->SERVICIO_MAQUILA, 5);
+                $TOTALP = intval($infoACEITES + $infoMARGARINAS + $infoSOLIDOS_CREMOSOS);
+                $TOTALO = intval($infoINDUSTRIALES + $infoOTROS + $infoSERVICIO_MAQUILA);
+                $TOTALV = intval($TOTALP + $TOTALO);
+                $infoTOTP = intval(round($data->SOLIDOS_CREMOSOS2 + $data->MARGARINAS2 + $data->ACEITES2));
+                $depreAmorti = round($data->DEPRECIACIONES_AMORTIZACIONES);
+                $gasVentas = round($data->GASTOS_VENTAS, 2);
+                $gastAdmin = round($data->GASTOS_ADMINISTRACION, 5);
+                $TOTSUMOTR = $TOTALO + $infoTOTP;
+                $totGasOper = +$gastAdmin + $gasVentas + $depreAmorti;
+                $UTLBRUTA = +$TOTALV - $TOTSUMOTR;
+                $UtilOper = $UTLBRUTA - $totGasOper;
+                $finan = intval(round($data->FINANCIEROS, 2));
+                $porceFinan = round($finan * 100 / $TOTALV, 2) . '%';
+                $retActiv = intval(round($data->RETIRO_ACTIVOS));
+                $porceActiv = round($retActiv * 100 / $TOTALV, 2) . '%';
+                $gravFinan = intval(round($data->GRAVA_MOV_FINANCIERO));
+                $porceGravFin = round($gravFinan * 100 / $TOTALV, 2) . '%';
+                $otros = intval(round($data->OTROS));
+                $porceOtros = round($otros * 100 / $TOTALV, 2) . '%';
+                $totlNoOp = $finan + $retActiv + $gravFinan + $otros;
+                $porceTotlNoOp = round($totlNoOp * 100 / $TOTALV, 2) . '%';
+                $utilAntImp =   $UtilOper - $totlNoOp;
+                $porceUtilAntImp = round($utilAntImp * 100 / $TOTALV, 2) . '%';
+                $ebitda = intval(round($data->EBITDA));
+                $porceEbtida = round($ebitda * 100 / $TOTALV, 2) . '%';
+                $dateObject = DateTime::createFromFormat('m', $data->INF_D_MES)->format('F');
+                array_push($fomDates, [
+                    $finan, $porceFinan, $retActiv, $porceActiv, $gravFinan, $porceGravFin, $otros, $porceOtros,
+                    $totlNoOp, $porceTotlNoOp, $utilAntImp, $porceUtilAntImp, $ebitda, $porceEbtida
+                ]);
+                array_push($mes, ['mes' => $dateObject]);
+                $c++;
+            }
         }
 
 
@@ -75,15 +277,12 @@ trait GastosNoOperTrait
             $infoACEITES =  round($infoOperations->ACEITES, 5);
             $infoMARGARINAS =  round($infoOperations->MARGARINAS, 5);
             $infoSOLIDOS_CREMOSOS =  round($infoOperations->SOLIDOS_CREMOSOS, 5);
-            //informacion general tabla de ventas netas
             $infoINDUSTRIALES =  round($infoOperations->INDUSTRIALES, 5);
             $infoOTROS =  round($infoOperations->ACIDOS_GRASOS_ACIDULADO, 5);
             $infoSERVICIO_MAQUILA =  round($infoOperations->SERVICIO_MAQUILA, 5);
-            //consulta alterna
             $TOTALP = intval($infoACEITES + $infoMARGARINAS + $infoSOLIDOS_CREMOSOS);
             $TOTALO = intval($infoINDUSTRIALES + $infoOTROS + $infoSERVICIO_MAQUILA);
             $TOTALV = intval($TOTALP + $TOTALO);
-            // fin consulta
             $infoTOTP = intval(round($infoOperations->SOLIDOS_CREMOSOS2 + $infoOperations->MARGARINAS2 + $infoOperations->ACEITES2));
             $depreAmorti = round($infoOperations->DEPRECIACIONES_AMORTIZACIONES);
             $gasVentas = round($infoOperations->GASTOS_VENTAS, 2);
@@ -92,8 +291,6 @@ trait GastosNoOperTrait
             $totGasOper = +$gastAdmin + $gasVentas + $depreAmorti;
             $UTLBRUTA = +$TOTALV - $TOTSUMOTR;
             $UtilOper = $UTLBRUTA - $totGasOper;
-            //----
-
             $finanN = round($infoOperations->FINANCIEROS, 5);
             $retActivN = round($infoOperations->RETIRO_ACTIVOS, 5);
             $gravFinanN = round($infoOperations->GRAVA_MOV_FINANCIERO, 5);
@@ -105,7 +302,6 @@ trait GastosNoOperTrait
             array_push($ventTotales, $TOTALV);
         }
 
-        //dd(count($sumados[0]));
         $sumatorias = [];
         $promedios = [];
         for ($i = 0; $i < count($sumados[0]); $i++) {

@@ -15,8 +15,8 @@ trait GastosOperUnitTrait
     public function tablaGastosOperacionalesUnit($fechaIni, $fechaFin)
     {
       if($fechaIni != null){
-         $fechaIni = $fechaIni.'-1';
-         $fechaFin = $fechaFin.'-1';
+         $fechaIni = $fechaIni;
+         $fechaFin = $fechaFin;
          $infoGastosUn = DB::connection('sqlsrv2')->table('TBL_RINFORME_JUNTA_DUQ')->whereBetween('INF_D_FECHAS',[$fechaIni,$fechaFin])->orderBy('INF_D_FECHAS', 'asc')->get();
          $infoGastosUn= $infoGastosUn->toArray();
          $infoTonsUn = DB::connection('sqlsrv2')->table('TBL_RINFORME_JUNTA_DUQ2')->whereBetween('INF_D_FECHAS',[$fechaIni,$fechaFin])->orderBy('INF_D_FECHAS', 'asc')->get();
@@ -55,7 +55,6 @@ trait GastosOperUnitTrait
          $servMqui= round($info1->SERVICIO_MAQUILA,5);
          $totVEN = (round($info1->ACEITES,5) + round($info1->MARGARINAS,5) + round($info1->SOLIDOS_CREMOSOS,5) + round($info1->INDUSTRIALES,5) + round($info1->ACIDOS_GRASOS_ACIDULADO,5) + round($info1->SERVICIO_MAQUILA,5)) - round($info1->SERVICIO_MAQUILA,5);
          $totGasOper = round($gasAdmon+$gasVentas,5)+$depresiaci;
-         $dateObject = DateTime::createFromFormat('m', $info1->INF_D_MES)->format('F');
          $infoTOT = round($info1->SOLIDOS_CREMOSOS2 + $info1->MARGARINAS2 + $info1->ACEITES2)+round($info1->INDUSTRIALES2 + $info1->ACIDOS_GRASOS_ACIDULADO2 + $info1->SERVICIO_MAQUILA2);
          array_push($data1, [$gasAdmon, $totVEN, $gasPerson,$honorarios,$servicios,$otros,$gasVentas,$gasPerson2,$polizCart,$fletes
                   ,$servicLog,$estratComer,$impuestos,$descuProntP,$otros2,$depresiaci,$totGasOper,$infoTOT]);

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Traits\CostosUnitTrait;
 use App\Http\Traits\GastosOperTrait;
+use App\Http\Traits\VentasNetasTrait;
 use App\Http\Traits\VentasNetasUnitTrait;
 use App\Http\Traits\VentasToneladasTrait;
 use DateTime;
@@ -16,6 +17,7 @@ class GastosOperacionalesController extends Controller
    use VentasNetasUnitTrait;
    use GastosOperTrait;
    use VentasToneladasTrait;
+   use VentasNetasTrait;
 
    public function operational_expenses(Request $request)
    {
@@ -27,9 +29,9 @@ class GastosOperacionalesController extends Controller
      }else{
          $infoGastos = DB::connection('sqlsrv2')->table('TBL_RINFORME_JUNTA_DUQ')->orderBy('INF_D_FECHAS', 'asc')->get();
          $infoGastos = $infoGastos->toArray();
+         $fechaIni = null;
+         $fechaFin = null;
      }
-      $infoGastos = DB::connection('sqlsrv2')->table('TBL_RINFORME_JUNTA_DUQ')->orderBy('INF_D_FECHAS', 'asc')->get();
-      $infoGastos= $infoGastos->toArray();
       $headers = [
          'GASTOS DE ADMINISTRACION', 'PORCENTAJE GASTOS DE ADMINISTRACION',
          'GATOS DE PERSONAL', 'PORCENTAJE GATOS DE PERSONAL', 'HONORARIOS', 'PORCENTAJE HONORARIOS',
@@ -43,29 +45,22 @@ class GastosOperacionalesController extends Controller
       ];
       $mes = [];
       $formGastos = [];
-
+      $c=1;  
       foreach ($infoGastos as $data) {
-         //informacion general tabla de ventas netas
-         $infoACEITES =  round($data->ACEITES, 5);
+         if ($c == 3 || $c == 7 || $c == 11 || $c == 15) {
+            $infoACEITES =  round($data->ACEITES, 5);
          $infoMARGARINAS =  round($data->MARGARINAS, 5);
          $infoSOLIDOS_CREMOSOS =  round($data->SOLIDOS_CREMOSOS, 5);
-         //informacion general tabla de ventas netas
          $infoINDUSTRIALES =  round($data->INDUSTRIALES, 5);
          $infoOTROS =  round($data->ACIDOS_GRASOS_ACIDULADO, 5);
          $infoSERVICIO_MAQUILA =  round($data->SERVICIO_MAQUILA, 5);
-         //consulta alterna
          $TOTALP = intval(round($infoACEITES + $infoMARGARINAS + $infoSOLIDOS_CREMOSOS,5));
          $TOTALO = intval(round($infoINDUSTRIALES + $infoOTROS + $infoSERVICIO_MAQUILA,5));
          $TOTALV = intval($TOTALP + $TOTALO);
-         //dd($TOTALV);
-         //fin consulta externa
-         //informacioin general tablacosto ventas
          $infoACEITES = intval(round($data->ACEITES2,5));
          $infoMarga = intval(round($data->MARGARINAS2,5));
          $infoSOLID = intval(round($data->SOLIDOS_CREMOSOS2,5));
          $infoTOTP = intval(round($data->SOLIDOS_CREMOSOS2 + $data->MARGARINAS2 + $data->ACEITES2,5));
-         //fin consulta general tabla costo ventas
-         //consulta general costo ventas2
          $infoINDU = intval(round($data->INDUSTRIALES2,5));
          $infoOTROS = intval(round($data->ACIDOS_GRASOS_ACIDULADO2,5));
          $infoSERVM = intval(round($data->SERVICIO_MAQUILA2,5));
@@ -74,10 +69,6 @@ class GastosOperacionalesController extends Controller
          $TOTSUMOTR = $TOTALO + $infoTOTP;
          $TOTLCOSVEN = $infoTOTP + $TOTALO;
          $UTLBRUTA = +$TOTALV - $TOTSUMOTR;
-         //fin consulta
-         //consulta utilidad bruta
-
-
          $gastAdmin = round($data->GASTOS_ADMINISTRACION, 5);
          $porceGasAdmin = round($gastAdmin * 100 / $TOTALV, 2) . '%';
          $garPersonal = round($data->GASTOS_PERSONAL, 5);
@@ -120,6 +111,239 @@ class GastosOperacionalesController extends Controller
             $porceTotGasOper, $UtilOper, $porceUtilOper
          ]);
          array_push($mes, ['mes' => $dateObject]);
+         array_push($mes, ['mes' => 'TRIMESTRE']);
+         switch ($c) {
+            case $c <= 3:
+                $ventasNetasTabla= $this->TablaVentas($fechaIni,$fechaFin);
+                $ventasNetasTabla= array_slice($ventasNetasTabla,0,3);
+                $sumaVentas = [];
+                for ($i = 0; $i < count($ventasNetasTabla[0]); $i++) {
+                    $suma = 0;
+                    foreach ($ventasNetasTabla as $prom) {
+                        $suma += $prom[$i];
+                    }
+                    array_push($sumaVentas, intval(round($suma / 3)));
+                }
+
+                $formEdit= $formGastos;
+                $sumaCostos = [];
+                for ($i = 0; $i < count($formEdit[0]); $i++) {
+                    $suma = 0;
+                    foreach ($formEdit as $prom) {
+                        if($i%2==0){
+                            $suma += $prom[$i];
+                        }
+                    }
+                    array_push($sumaCostos, intval(round($suma / 3)));
+                }
+                $cuenta= count($sumaCostos);
+                for($i=0;$i<$cuenta;$i++){
+                    if($i%2==0){
+                    }else{
+                        unset($sumaCostos[$i]);
+                    }
+                }
+                $sumaCostos = array_values($sumaCostos);
+                $sumfinals=[];
+                for ($i = 0; $i < count($sumaCostos); $i++) {
+                    array_push($sumfinals, $sumaCostos[$i]);
+                    array_push($sumfinals, round($sumaCostos[$i]*100/$sumaVentas[8],2).'%');
+                }
+                array_push($formGastos, $sumfinals);
+                $c++;
+                break;
+            case $c >3 && $c < 8:
+                $formEdit1 = array_slice($formGastos,4,3);
+                $ventasNetasTabla= $this->TablaVentas($fechaIni,$fechaFin);
+                $ventasNetasTabla= array_slice($ventasNetasTabla,3,3);
+                $sumaVentas = [];
+                for ($i = 0; $i < count($ventasNetasTabla[0]); $i++) {
+                    $suma = 0;
+                    foreach ($ventasNetasTabla as $prom) {
+                        $suma += $prom[$i];
+                    }
+                    array_push($sumaVentas, intval(round($suma / 3)));
+                }
+
+                $formEdit= $formGastos;
+                $sumaCostos = [];
+                for ($i = 0; $i < count($formEdit1[0]); $i++) {
+                    $suma = 0;
+                    foreach ($formEdit1 as $prom) {
+                        if($i%2==0){
+                            $suma += $prom[$i];
+                        }
+                    }
+                    array_push($sumaCostos, intval(round($suma / 3)));
+                }
+                $cuenta= count($sumaCostos);
+                for($i=0;$i<$cuenta;$i++){
+                    if($i%2==0){
+                    }else{
+                        unset($sumaCostos[$i]);
+                    }
+                }
+                $sumaCostos = array_values($sumaCostos);
+                $sumfinals=[];
+                for ($i = 0; $i < count($sumaCostos); $i++) {
+                    array_push($sumfinals, $sumaCostos[$i]);
+                    array_push($sumfinals, round($sumaCostos[$i]*100/$sumaVentas[8],2).'%');
+                }
+                array_push($formGastos, $sumfinals);
+                $c++;
+                break;
+            case $c > 7 && $c <= 11:
+                $formEdit2 = array_slice($formGastos,8,3);
+                $ventasNetasTabla= $this->TablaVentas($fechaIni,$fechaFin);
+                $ventasNetasTabla= array_slice($ventasNetasTabla,6,3);
+                $sumaVentas = [];
+                for ($i = 0; $i < count($ventasNetasTabla[0]); $i++) {
+                    $suma = 0;
+                    foreach ($ventasNetasTabla as $prom) {
+                        $suma += $prom[$i];
+                    }
+                    array_push($sumaVentas, intval(round($suma / 3)));
+                }
+
+                $formEdit= $formGastos;
+                $sumaCostos = [];
+                for ($i = 0; $i < count($formEdit2[0]); $i++) {
+                    $suma = 0;
+                    foreach ($formEdit2 as $prom) {
+                        if($i%2==0){
+                            $suma += $prom[$i];
+                        }
+                    }
+                    array_push($sumaCostos, intval(round($suma / 3)));
+                }
+                $cuenta= count($sumaCostos);
+                for($i=0;$i<$cuenta;$i++){
+                    if($i%2==0){
+                    }else{
+                        unset($sumaCostos[$i]);
+                    }
+                }
+                $sumaCostos = array_values($sumaCostos);
+                $sumfinals=[];
+                for ($i = 0; $i < count($sumaCostos); $i++) {
+                    array_push($sumfinals, $sumaCostos[$i]);
+                    array_push($sumfinals, round($sumaCostos[$i]*100/$sumaVentas[8],2).'%');
+                }
+                array_push($formGastos, $sumfinals);
+                $c++;
+                break;
+            case $c > 11 :
+                $formEdit2 = array_slice($formGastos,12,3);
+                $ventasNetasTabla= $this->TablaVentas($fechaIni,$fechaFin);
+                $ventasNetasTabla= array_slice($ventasNetasTabla,9,3);
+                $sumaVentas = [];
+                for ($i = 0; $i < count($ventasNetasTabla[0]); $i++) {
+                    $suma = 0;
+                    foreach ($ventasNetasTabla as $prom) {
+                        $suma += $prom[$i];
+                    }
+                    array_push($sumaVentas, intval(round($suma / 3)));
+                }
+
+                $formEdit= $formGastos;
+                $sumaCostos = [];
+                for ($i = 0; $i < count($formEdit2[0]); $i++) {
+                    $suma = 0;
+                    foreach ($formEdit2 as $prom) {
+                        if($i%2==0){
+                            $suma += $prom[$i];
+                        }
+                    }
+                    array_push($sumaCostos, intval(round($suma / 3)));
+                }
+                $cuenta= count($sumaCostos);
+                for($i=0;$i<$cuenta;$i++){
+                    if($i%2==0){
+                    }else{
+                        unset($sumaCostos[$i]);
+                    }
+                }
+                $sumaCostos = array_values($sumaCostos);
+                $sumfinals=[];
+                for ($i = 0; $i < count($sumaCostos); $i++) {
+                    array_push($sumfinals, $sumaCostos[$i]);
+                    array_push($sumfinals, round($sumaCostos[$i]*100/$sumaVentas[8],2).'%');
+                }
+                array_push($formGastos, $sumfinals);
+                $c++;
+                break;
+        }
+
+
+
+         $c++;
+         }else{
+            $infoACEITES =  round($data->ACEITES, 5);
+            $infoMARGARINAS =  round($data->MARGARINAS, 5);
+            $infoSOLIDOS_CREMOSOS =  round($data->SOLIDOS_CREMOSOS, 5);
+            $infoINDUSTRIALES =  round($data->INDUSTRIALES, 5);
+            $infoOTROS =  round($data->ACIDOS_GRASOS_ACIDULADO, 5);
+            $infoSERVICIO_MAQUILA =  round($data->SERVICIO_MAQUILA, 5);
+            $TOTALP = intval(round($infoACEITES + $infoMARGARINAS + $infoSOLIDOS_CREMOSOS,5));
+            $TOTALO = intval(round($infoINDUSTRIALES + $infoOTROS + $infoSERVICIO_MAQUILA,5));
+            $TOTALV = intval($TOTALP + $TOTALO);
+            $infoACEITES = intval(round($data->ACEITES2,5));
+            $infoMarga = intval(round($data->MARGARINAS2,5));
+            $infoSOLID = intval(round($data->SOLIDOS_CREMOSOS2,5));
+            $infoTOTP = intval(round($data->SOLIDOS_CREMOSOS2 + $data->MARGARINAS2 + $data->ACEITES2,5));
+            $infoINDU = intval(round($data->INDUSTRIALES2,5));
+            $infoOTROS = intval(round($data->ACIDOS_GRASOS_ACIDULADO2,5));
+            $infoSERVM = intval(round($data->SERVICIO_MAQUILA2,5));
+            $infoTOLALO = $infoINDU + $infoOTROS + $infoSERVM;
+            $TOTALO = intval(round($data->INDUSTRIALES + $data->ACIDOS_GRASOS_ACIDULADO + $data->SERVICIO_MAQUILA,5));
+            $TOTSUMOTR = $TOTALO + $infoTOTP;
+            $TOTLCOSVEN = $infoTOTP + $TOTALO;
+            $UTLBRUTA = +$TOTALV - $TOTSUMOTR;
+            $gastAdmin = round($data->GASTOS_ADMINISTRACION, 5);
+            $porceGasAdmin = round($gastAdmin * 100 / $TOTALV, 2) . '%';
+            $garPersonal = round($data->GASTOS_PERSONAL, 5);
+            $porcePerson = round($garPersonal * 100 / $TOTALV, 2) . '%';
+            $honorarios = round($data->HONORARIOS, 5);
+            $porceHonor = round($honorarios * 100 / $TOTALV, 2) . '%';
+            $servicios = round($data->SERVICIOS, 5);
+            $porceServi = round($servicios * 100 / $TOTALV, 2) . '%';
+            $otros = round($gastAdmin - $garPersonal - $honorarios - $servicios, 5);
+            $porceOtros = round($otros * 100 / $TOTALV, 2) . '%';
+            $gasVentas = round($data->GASTOS_VENTAS, 5);
+            $porceVentas = round($gasVentas * 100 / $TOTALV, 2) . '%';
+            $gasPersonales2 = round($data->GASTOS_PERSONAL2,5);
+            $porcePersonales2 = round($gasPersonales2 * 100 / $TOTALV, 2) . '%';
+            $polCartera = round($data->POLIZA_CARTERA,5);
+            $porcePrtCartera = round($polCartera * 100 / $TOTALV, 2) . '%';
+            $fletes = round($data->FLETES, 5);
+            $porceFletes = round($fletes * 100 / $TOTALV, 2) . '%';
+            $servLogistico = round($data->SERVICIO_LOGISTICO,5);
+            $porceservLog = round($servLogistico * 100 / $TOTALV, 2) . '%';
+            $estrComer = round($data->ESTRATEGIA_COMERCIAL);
+            $porceEstrComer = round($estrComer * 100 / $TOTALV, 2) . '%';
+            $impuestos = round($data->IMPUESTOS,5);
+            $porceImpu = round($impuestos * 100 / $TOTALV, 2) . '%';
+            $descPronPa = round($data->DES_PRONTO_PAGO,5);
+            $porceDesPr = round($descPronPa * 100 / $TOTALV, 2) . '%';
+            $otr2 = +$gasVentas - $gasPersonales2 - $polCartera - $fletes - $servLogistico - $estrComer - $impuestos - $descPronPa;
+            $porceOtr2 = round($otr2 * 100 / $TOTALV, 2) . '%';
+            $depreAmorti = round($data->DEPRECIACIONES_AMORTIZACIONES,5);
+            $porceDepreAmor = round($depreAmorti * 100 / $TOTALV, 2) . '%';
+            $totGasOper = +$gastAdmin + $gasVentas + $depreAmorti;
+            $porceTotGasOper = round($totGasOper * 100 / $TOTALV, 2) . '%';
+            $UtilOper = $UTLBRUTA - $totGasOper;
+            $porceUtilOper = round($UtilOper * 100 / $TOTALV, 2) . '%';
+            $dateObject = DateTime::createFromFormat('m', $data->INF_D_MES)->format('F');
+   
+            array_push($formGastos, [
+               $gastAdmin, $porceGasAdmin, $garPersonal, $porcePerson, $honorarios, $porceHonor, $servicios, $porceServi, $otros, $porceOtros, $gasVentas, $porceVentas, $gasPersonales2, $porcePersonales2, $polCartera, $porcePrtCartera, $fletes, $porceFletes, $servLogistico, $porceservLog,
+               $estrComer, $porceEstrComer, $impuestos, $porceImpu, $descPronPa, $porceDesPr, $otr2, $porceOtr2, $depreAmorti, $porceDepreAmor, $totGasOper,
+               $porceTotGasOper, $UtilOper, $porceUtilOper
+            ]);
+            array_push($mes, ['mes' => $dateObject]);
+            $c++;
+         }
+      
       }
       array_push($mes, ['mes' => 'ACUMULADO']);
       array_push($mes, ['mes' => 'PROMEDIO']);
@@ -142,28 +366,19 @@ class GastosOperacionalesController extends Controller
          $otr2 = +$gasVentasO - $gasPersonalesO - $polCarteraO - $fletesO - $servLogisticoO - $estrComerO - $impuestosO - $descPronPaO;
          $depreAmorti = round($dataOper->DEPRECIACIONES_AMORTIZACIONES,5);
          $totGasOper = +$gasAdmonO + $gasVentasO + $depreAmorti;
-         //---
-         //informacion general tabla de ventas netas
          $infoACEITES =  round($dataOper->ACEITES, 5);
          $infoMARGARINAS =  round($dataOper->MARGARINAS, 5);
          $infoSOLIDOS_CREMOSOS =  round($dataOper->SOLIDOS_CREMOSOS, 5);
-         //informacion general tabla de ventas netas
          $infoINDUSTRIALES =  round($dataOper->INDUSTRIALES, 5);
          $infoOTROS =  round($dataOper->ACIDOS_GRASOS_ACIDULADO, 5);
          $infoSERVICIO_MAQUILA =  round($dataOper->SERVICIO_MAQUILA, 5);
-         //consulta alterna
          $TOTALP = intval(round($infoACEITES + $infoMARGARINAS + $infoSOLIDOS_CREMOSOS,5));
          $TOTALO = intval(round($infoINDUSTRIALES + $infoOTROS + $infoSERVICIO_MAQUILA,5));
          $TOTALV = intval(round($TOTALP + $TOTALO,5));
-         //dd($TOTALV);
-         //fin consulta externa
-         //informacioin general tablacosto ventas
          $infoACEITES = intval(round($dataOper->ACEITES2,5));
          $infoMarga = intval(round($dataOper->MARGARINAS2,5));
          $infoSOLID = intval(round($dataOper->SOLIDOS_CREMOSOS2,5));
          $infoTOTP = intval(round($dataOper->SOLIDOS_CREMOSOS2 + $dataOper->MARGARINAS2 + $dataOper->ACEITES2,5));
-         //fin consulta general tabla costo ventas
-         //consulta general costo ventas2
          $infoINDU = intval(round($dataOper->INDUSTRIALES2,5));
          $infoOTROS = intval(round($dataOper->ACIDOS_GRASOS_ACIDULADO2,5));
          $infoSERVM = intval(round($dataOper->SERVICIO_MAQUILA2,5));
@@ -172,9 +387,6 @@ class GastosOperacionalesController extends Controller
          $TOTSUMOTR = $TOTALO + $infoTOTP;
          $TOTLCOSVEN = $infoTOTP + $TOTALO;
          $UTLBRUTA = +$TOTALV - $TOTSUMOTR;
-         //fin consulta
-         //consulta utilidad bruta
-         //---
          $UtilOper = $UTLBRUTA - $totGasOper;
          array_push($infoOper,[$gasAdmonO,$gasPersonalO,$honorariosO,$serviciosO, $otrosO,$gasVentasO,$gasPersonalesO,$polCarteraO,$fletesO,$servLogisticoO,$estrComerO,$impuestosO,$descPronPaO,$otr2,$depreAmorti,$totGasOper,$UtilOper]);
          array_push($ventTotales, $TOTALV);
@@ -185,14 +397,11 @@ class GastosOperacionalesController extends Controller
         for ($i = 0; $i < count($infoOper[0]); $i++) {
             $suma = 0;
             foreach ($infoOper as $sum) {
-               //dd($sum[$i]); 
                $suma += $sum[$i];
             }
             array_push($sumatorias, intval(round($suma,5)));
             array_push($promedios, intval(round($suma / count($infoGastos)),5));
         }
-        
-        //dd($promedios);
         for ($i = 0; $i < count($infoGastos); $i++) {
            $suma = 0;
            foreach ($ventTotales as $tot) {
@@ -389,7 +598,6 @@ class GastosOperacionalesController extends Controller
       array_push($acumulados, $acumUtilOperUnit);
       array_push($acumulados, round($porceAcumUtilOperUnit,2).'%');
       //fin acumulados
-      //dd($ventastoneladas, $ventastoneladas[12][0]);
 
 
 
