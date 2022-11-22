@@ -28,7 +28,6 @@
                 </div>
             </div>
         </form>
-
     </div>
     <br>
     <table class="table" style="width: 100%; border: 1px solid #000; margin: 0 0 1em 1em">
