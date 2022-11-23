@@ -40,7 +40,8 @@ Route::group(['prefix' => 'admin'], function () {
     Route::post('ventas/filterUnitS', [VentasNetasController::class, 'unit_sales']);
     Route::get('costU/unit', [CostosVentasController::class, 'unit_sales_costs']);
     Route::post('costU/filter', [CostosVentasController::class, 'unit_sales_costs']);
-    Route::get('gastos/operUnit', [GastosOperacionalesController::class, 'unit_operational_expenses']);
+    Route::get('gastosU/operUnit', [GastosOperacionalesController::class, 'unit_operational_expenses']);
+    Route::post('gastosU/filter', [GastosOperacionalesController::class, 'unit_operational_expenses']);
     Route::get('gastos/NoOperUnit', [GastosNoOperacionalesController::class, 'unit_nonOperatinals']);
 });
 

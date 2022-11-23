@@ -508,55 +508,239 @@ class GastosOperacionalesController extends Controller
  
       $amount = count($data2);
       $formOper = [];
+      $c=1;
       for ($i = 0; $i < $amount; $i++) {
-         $restaVen= round($data1[$i][1],5);
-         $sumTonel=round($data2[$i],5);
-         $totVenUnit= $restaVen/$sumTonel;
-         $gasAdmonR = round($data1[$i][0],5)/$sumTonel;
-         $porceAdmonR = round($gasAdmonR/$totVenUnit,2);
-         $gasPersonR = round($data1[$i][2],5) / $sumTonel;
-         $porcePersonR = round($gasPersonR/$totVenUnit,2);
-         $honorariosR= round($data1[$i][3],5) / $sumTonel;
-         $porceHonorR = round($honorariosR/$totVenUnit,2);
-         $serviciosR= round($data1[$i][4],5) / $sumTonel;
-         $porceServiR = round($serviciosR/$totVenUnit,2);
-         $otrosR= round($data1[$i][5],5) / $sumTonel;
-         $porceOtrosR = round($otrosR/$totVenUnit,2);
-         $gasVentasR= round($data1[$i][6],5) / $sumTonel;
-         $porceGasVentR = round($gasVentasR/$totVenUnit,2);
-         $gasPerson2R= round($data1[$i][7],5) / $sumTonel;
-         $porcePerson2R = round($gasPerson2R/$totVenUnit,2);
-         $polizCartR= round($data1[$i][8],5) / $sumTonel;
-         $porcePolizCartR = round($polizCartR/$totVenUnit,2);
-         $fletesR= round($data1[$i][9],5) / $sumTonel;
-         $porceFletesR = round($fletesR/$totVenUnit,2);
-         $servicLogR= round($data1[$i][10],5) / $sumTonel;
-         $porceServicLogR = round($servicLogR/$totVenUnit,2);
-         $estratComerR= round($data1[$i][11],5) / $sumTonel;
-         $porceEstratComerR = round($estratComerR/$totVenUnit,2);
-         $impuestosR= round($data1[$i][12],5) / $sumTonel;
-         $porceImpuestosR = round($impuestosR/$totVenUnit,2);
-         $descuentProntPR= round($data1[$i][13],5) / $sumTonel;
-         $porceDescuentProntPR = round($descuentProntPR/$totVenUnit,2);
-         $otros2R= round($data1[$i][14],5) / $sumTonel;
-         $porceOtros2R = round($otros2R/$totVenUnit,2);
-         $depreciaciR= round($data1[$i][15],5) / $sumTonel;
-         $porceDepreciaR = round($depreciaciR/$totVenUnit,2);
-         $totGasOperR= round($data1[$i][16],5) / $sumTonel;
-         $porceTotGasOperR = round($totGasOperR/$totVenUnit,2);
-         $TOTVEN= round($data1[$i][1])/round($data2[$i]);
-         $totCosVen= $data1[$i][17]/$data2[$i];
-         $utilBrut= intval($TOTVEN-$totCosVen);
-         $utilOper= +$utilBrut-intval(round($totGasOperR));
-         $porceUtilBrR = round($utilOper/$totVenUnit,2);
-         array_push($formOper, [$gasAdmonR, $porceAdmonR.'%',intval($gasPersonR), $porcePersonR.'%',
-         intval($honorariosR),$porceHonorR.'%',intval($serviciosR),$porceServiR.'%',intval($otrosR)
-         ,$porceOtrosR.'%',intval($gasVentasR),$porceGasVentR.'%',intval($gasPerson2R)
-         ,$porcePerson2R.'%',intval($polizCartR),$porcePolizCartR.'%',intval($fletesR)
-         ,$porceFletesR.'%',intval($servicLogR),$porceServicLogR.'%',intval($estratComerR)
-         ,$porceEstratComerR.'%',intval($impuestosR),$porceImpuestosR.'%',intval($descuentProntPR)
-         ,$porceDescuentProntPR.'%',intval($otros2R),$porceOtros2R.'%',intval($depreciaciR)
-         ,$porceDepreciaR.'%',intval($totGasOperR),$porceTotGasOperR.'%',intval($utilOper), $porceUtilBrR.'%']);
+        if ($c == 3 || $c == 7 || $c == 11 || $c == 15) {
+            $restaVen= round($data1[$i][1],5);
+            $sumTonel=round($data2[$i],5);
+            $totVenUnit= $restaVen/$sumTonel;
+            $gasAdmonR = round($data1[$i][0],5)/$sumTonel;
+            $porceAdmonR = round($gasAdmonR/$totVenUnit,2);
+            $gasPersonR = round($data1[$i][2],5) / $sumTonel;
+            $porcePersonR = round($gasPersonR/$totVenUnit,2);
+            $honorariosR= round($data1[$i][3],5) / $sumTonel;
+            $porceHonorR = round($honorariosR/$totVenUnit,2);
+            $serviciosR= round($data1[$i][4],5) / $sumTonel;
+            $porceServiR = round($serviciosR/$totVenUnit,2);
+            $otrosR= round($data1[$i][5],5) / $sumTonel;
+            $porceOtrosR = round($otrosR/$totVenUnit,2);
+            $gasVentasR= round($data1[$i][6],5) / $sumTonel;
+            $porceGasVentR = round($gasVentasR/$totVenUnit,2);
+            $gasPerson2R= round($data1[$i][7],5) / $sumTonel;
+            $porcePerson2R = round($gasPerson2R/$totVenUnit,2);
+            $polizCartR= round($data1[$i][8],5) / $sumTonel;
+            $porcePolizCartR = round($polizCartR/$totVenUnit,2);
+            $fletesR= round($data1[$i][9],5) / $sumTonel;
+            $porceFletesR = round($fletesR/$totVenUnit,2);
+            $servicLogR= round($data1[$i][10],5) / $sumTonel;
+            $porceServicLogR = round($servicLogR/$totVenUnit,2);
+            $estratComerR= round($data1[$i][11],5) / $sumTonel;
+            $porceEstratComerR = round($estratComerR/$totVenUnit,2);
+            $impuestosR= round($data1[$i][12],5) / $sumTonel;
+            $porceImpuestosR = round($impuestosR/$totVenUnit,2);
+            $descuentProntPR= round($data1[$i][13],5) / $sumTonel;
+            $porceDescuentProntPR = round($descuentProntPR/$totVenUnit,2);
+            $otros2R= round($data1[$i][14],5) / $sumTonel;
+            $porceOtros2R = round($otros2R/$totVenUnit,2);
+            $depreciaciR= round($data1[$i][15],5) / $sumTonel;
+            $porceDepreciaR = round($depreciaciR/$totVenUnit,2);
+            $totGasOperR= round($data1[$i][16],5) / $sumTonel;
+            $porceTotGasOperR = round($totGasOperR/$totVenUnit,2);
+            $TOTVEN= round($data1[$i][1])/round($data2[$i]);
+            $totCosVen= $data1[$i][17]/$data2[$i];
+            $utilBrut= intval($TOTVEN-$totCosVen);
+            $utilOper= +$utilBrut-intval(round($totGasOperR));
+            $porceUtilBrR = round($utilOper/$totVenUnit,2);
+            array_push($formOper, [$gasAdmonR, $porceAdmonR.'%',intval($gasPersonR), $porcePersonR.'%',
+            intval($honorariosR),$porceHonorR.'%',intval($serviciosR),$porceServiR.'%',intval($otrosR)
+            ,$porceOtrosR.'%',intval($gasVentasR),$porceGasVentR.'%',intval($gasPerson2R)
+            ,$porcePerson2R.'%',intval($polizCartR),$porcePolizCartR.'%',intval($fletesR)
+            ,$porceFletesR.'%',intval($servicLogR),$porceServicLogR.'%',intval($estratComerR)
+            ,$porceEstratComerR.'%',intval($impuestosR),$porceImpuestosR.'%',intval($descuentProntPR)
+            ,$porceDescuentProntPR.'%',intval($otros2R),$porceOtros2R.'%',intval($depreciaciR)
+            ,$porceDepreciaR.'%',intval($totGasOperR),$porceTotGasOperR.'%',intval($utilOper), $porceUtilBrR.'%']);
+            switch ($c) {
+                case $c <= 3:
+                    $gastosOperacionalesTabla= $this->tablaGastosoperacionales($fechaIni,$fechaFin);
+                    $gastosOperacionalesTabla= array_slice($gastosOperacionalesTabla,3,1);
+                    $cuenCos= count($gastosOperacionalesTabla[0]);
+                        for($i=0;$i<$cuenCos;$i++){
+                            if($i%2==0){
+                            }else{
+                                unset($gastosOperacionalesTabla[0][$i]);
+                            }
+                        }
+                    $gastosOperacionalesTabla= array_values($gastosOperacionalesTabla[0]);
+                    $toneladasTabla= $this->TablaVentasToneladas($fechaIni,$fechaFin);
+                    $toneladasTabla= array_slice($toneladasTabla,3,1);
+                    $ventasNetasUnitariasTabla= $this->TablaVentasUnit($fechaIni,$fechaFin);
+                    $ventasNetasUnitariasTabla= array_slice($ventasNetasUnitariasTabla,3,1);
+                    $costosVentasUnitariosTabla= $this->TablaCostosUnit($fechaIni,$fechaFin);
+                    $costosVentasUnitariosTabla= array_slice($costosVentasUnitariosTabla,3,1); 
+                    $trimestre = [];
+                    for ($i = 0; $i < count($gastosOperacionalesTabla)-2; $i++) {
+                        $gas= round($gastosOperacionalesTabla[$i]/$toneladasTabla[0][0]);
+                        array_push($trimestre, $gas);
+                        array_push($trimestre, round($gas*100/$ventasNetasUnitariasTabla[0][7],2).'%');
+                    }
+                    $totGasOpera= $trimestre[0]+$trimestre[10]+$trimestre[28];
+                    array_push($trimestre, $totGasOpera);
+                    $porceTotaGasOpera= round($totGasOpera*100/$ventasNetasUnitariasTabla[0][7]);
+                    array_push($trimestre, round($porceTotaGasOpera,2).'%');
+                    $utilopera= $porceTotaGasOpera-$costosVentasUnitariosTabla[0][14];
+                    array_push($trimestre, round($utilopera*100/$ventasNetasUnitariasTabla[0][7],2).'%');
+                    array_push($formOper, $trimestre);
+                    $c++;
+                    break;
+                case $c >3 && $c < 8:
+                    $gastosOperacionalesTabla= $this->tablaGastosoperacionales($fechaIni,$fechaFin);
+                    $gastosOperacionalesTabla= array_slice($gastosOperacionalesTabla,3,1);
+                    $cuenCos= count($gastosOperacionalesTabla[0]);
+                        for($i=0;$i<$cuenCos;$i++){
+                            if($i%2==0){
+                            }else{
+                                unset($gastosOperacionalesTabla[0][$i]);
+                            }
+                        }
+                    $gastosOperacionalesTabla= array_values($gastosOperacionalesTabla[0]);
+                    $toneladasTabla= $this->TablaVentasToneladas($fechaIni,$fechaFin);
+                    $toneladasTabla= array_slice($toneladasTabla,3,1);
+                    $ventasNetasUnitariasTabla= $this->TablaVentasUnit($fechaIni,$fechaFin);
+                    $ventasNetasUnitariasTabla= array_slice($ventasNetasUnitariasTabla,3,1);
+                    $costosVentasUnitariosTabla= $this->TablaCostosUnit($fechaIni,$fechaFin);
+                    $costosVentasUnitariosTabla= array_slice($costosVentasUnitariosTabla,3,1); 
+                    $trimestre = [];
+                    for ($i = 0; $i < count($gastosOperacionalesTabla)-2; $i++) {
+                        $gas= round($gastosOperacionalesTabla[$i]/$toneladasTabla[0][0]);
+                        array_push($trimestre, $gas);
+                        array_push($trimestre, round($gas*100/$ventasNetasUnitariasTabla[0][7],2).'%');
+                    }
+                    $totGasOpera= $trimestre[0]+$trimestre[10]+$trimestre[28];
+                    array_push($trimestre, $totGasOpera);
+                    $porceTotaGasOpera= round($totGasOpera*100/$ventasNetasUnitariasTabla[0][7]);
+                    array_push($trimestre, round($porceTotaGasOpera,2).'%');
+                    $utilopera= $porceTotaGasOpera-$costosVentasUnitariosTabla[0][14];
+                    array_push($trimestre, round($utilopera*100/$ventasNetasUnitariasTabla[0][7],2).'%');
+                    array_push($formOper, $trimestre);
+                    $c++;
+                    break;
+                case $c > 7 && $c <= 11:
+                    $gastosOperacionalesTabla= $this->tablaGastosoperacionales($fechaIni,$fechaFin);
+                    $gastosOperacionalesTabla= array_slice($gastosOperacionalesTabla,3,1);
+                    $cuenCos= count($gastosOperacionalesTabla[0]);
+                        for($i=0;$i<$cuenCos;$i++){
+                            if($i%2==0){
+                            }else{
+                                unset($gastosOperacionalesTabla[0][$i]);
+                            }
+                        }
+                    $gastosOperacionalesTabla= array_values($gastosOperacionalesTabla[0]);
+                    $toneladasTabla= $this->TablaVentasToneladas($fechaIni,$fechaFin);
+                    $toneladasTabla= array_slice($toneladasTabla,3,1);
+                    $ventasNetasUnitariasTabla= $this->TablaVentasUnit($fechaIni,$fechaFin);
+                    $ventasNetasUnitariasTabla= array_slice($ventasNetasUnitariasTabla,3,1);
+                    $costosVentasUnitariosTabla= $this->TablaCostosUnit($fechaIni,$fechaFin);
+                    $costosVentasUnitariosTabla= array_slice($costosVentasUnitariosTabla,3,1); 
+                    $trimestre = [];
+                    for ($i = 0; $i < count($gastosOperacionalesTabla)-2; $i++) {
+                        $gas= round($gastosOperacionalesTabla[$i]/$toneladasTabla[0][0]);
+                        array_push($trimestre, $gas);
+                        array_push($trimestre, round($gas*100/$ventasNetasUnitariasTabla[0][7],2).'%');
+                    }
+                    $totGasOpera= $trimestre[0]+$trimestre[10]+$trimestre[28];
+                    array_push($trimestre, $totGasOpera);
+                    $porceTotaGasOpera= round($totGasOpera*100/$ventasNetasUnitariasTabla[0][7]);
+                    array_push($trimestre, round($porceTotaGasOpera,2).'%');
+                    $utilopera= $porceTotaGasOpera-$costosVentasUnitariosTabla[0][14];
+                    array_push($trimestre, round($utilopera*100/$ventasNetasUnitariasTabla[0][7],2).'%');
+                    array_push($formOper, $trimestre);
+                    $c++;
+                    break;
+                case $c > 11 :
+                    $gastosOperacionalesTabla= $this->tablaGastosoperacionales($fechaIni,$fechaFin);
+                    $gastosOperacionalesTabla= array_slice($gastosOperacionalesTabla,3,1);
+                    $cuenCos= count($gastosOperacionalesTabla[0]);
+                        for($i=0;$i<$cuenCos;$i++){
+                            if($i%2==0){
+                            }else{
+                                unset($gastosOperacionalesTabla[0][$i]);
+                            }
+                        }
+                    $gastosOperacionalesTabla= array_values($gastosOperacionalesTabla[0]);
+                    $toneladasTabla= $this->TablaVentasToneladas($fechaIni,$fechaFin);
+                    $toneladasTabla= array_slice($toneladasTabla,3,1);
+                    $ventasNetasUnitariasTabla= $this->TablaVentasUnit($fechaIni,$fechaFin);
+                    $ventasNetasUnitariasTabla= array_slice($ventasNetasUnitariasTabla,3,1);
+                    $costosVentasUnitariosTabla= $this->TablaCostosUnit($fechaIni,$fechaFin);
+                    $costosVentasUnitariosTabla= array_slice($costosVentasUnitariosTabla,3,1); 
+                    $trimestre = [];
+                    for ($i = 0; $i < count($gastosOperacionalesTabla)-2; $i++) {
+                        $gas= round($gastosOperacionalesTabla[$i]/$toneladasTabla[0][0]);
+                        array_push($trimestre, $gas);
+                        array_push($trimestre, round($gas*100/$ventasNetasUnitariasTabla[0][7],2).'%');
+                    }
+                    $totGasOpera= $trimestre[0]+$trimestre[10]+$trimestre[28];
+                    array_push($trimestre, $totGasOpera);
+                    $porceTotaGasOpera= round($totGasOpera*100/$ventasNetasUnitariasTabla[0][7]);
+                    array_push($trimestre, round($porceTotaGasOpera,2).'%');
+                    $utilopera= $porceTotaGasOpera-$costosVentasUnitariosTabla[0][14];
+                    array_push($trimestre, round($utilopera*100/$ventasNetasUnitariasTabla[0][7],2).'%');
+                    array_push($formOper, $trimestre);
+                    $c++;
+                    break;
+            }
+             $c++;
+        }else{
+            $restaVen= round($data1[$i][1],5);
+            $sumTonel=round($data2[$i],5);
+            $totVenUnit= $restaVen/$sumTonel;
+            $gasAdmonR = round($data1[$i][0],5)/$sumTonel;
+            $porceAdmonR = round($gasAdmonR/$totVenUnit,2);
+            $gasPersonR = round($data1[$i][2],5) / $sumTonel;
+            $porcePersonR = round($gasPersonR/$totVenUnit,2);
+            $honorariosR= round($data1[$i][3],5) / $sumTonel;
+            $porceHonorR = round($honorariosR/$totVenUnit,2);
+            $serviciosR= round($data1[$i][4],5) / $sumTonel;
+            $porceServiR = round($serviciosR/$totVenUnit,2);
+            $otrosR= round($data1[$i][5],5) / $sumTonel;
+            $porceOtrosR = round($otrosR/$totVenUnit,2);
+            $gasVentasR= round($data1[$i][6],5) / $sumTonel;
+            $porceGasVentR = round($gasVentasR/$totVenUnit,2);
+            $gasPerson2R= round($data1[$i][7],5) / $sumTonel;
+            $porcePerson2R = round($gasPerson2R/$totVenUnit,2);
+            $polizCartR= round($data1[$i][8],5) / $sumTonel;
+            $porcePolizCartR = round($polizCartR/$totVenUnit,2);
+            $fletesR= round($data1[$i][9],5) / $sumTonel;
+            $porceFletesR = round($fletesR/$totVenUnit,2);
+            $servicLogR= round($data1[$i][10],5) / $sumTonel;
+            $porceServicLogR = round($servicLogR/$totVenUnit,2);
+            $estratComerR= round($data1[$i][11],5) / $sumTonel;
+            $porceEstratComerR = round($estratComerR/$totVenUnit,2);
+            $impuestosR= round($data1[$i][12],5) / $sumTonel;
+            $porceImpuestosR = round($impuestosR/$totVenUnit,2);
+            $descuentProntPR= round($data1[$i][13],5) / $sumTonel;
+            $porceDescuentProntPR = round($descuentProntPR/$totVenUnit,2);
+            $otros2R= round($data1[$i][14],5) / $sumTonel;
+            $porceOtros2R = round($otros2R/$totVenUnit,2);
+            $depreciaciR= round($data1[$i][15],5) / $sumTonel;
+            $porceDepreciaR = round($depreciaciR/$totVenUnit,2);
+            $totGasOperR= round($data1[$i][16],5) / $sumTonel;
+            $porceTotGasOperR = round($totGasOperR/$totVenUnit,2);
+            $TOTVEN= round($data1[$i][1])/round($data2[$i]);
+            $totCosVen= $data1[$i][17]/$data2[$i];
+            $utilBrut= intval($TOTVEN-$totCosVen);
+            $utilOper= +$utilBrut-intval(round($totGasOperR));
+            $porceUtilBrR = round($utilOper/$totVenUnit,2);
+            array_push($formOper, [$gasAdmonR, $porceAdmonR.'%',intval($gasPersonR), $porcePersonR.'%',
+            intval($honorariosR),$porceHonorR.'%',intval($serviciosR),$porceServiR.'%',intval($otrosR)
+            ,$porceOtrosR.'%',intval($gasVentasR),$porceGasVentR.'%',intval($gasPerson2R)
+            ,$porcePerson2R.'%',intval($polizCartR),$porcePolizCartR.'%',intval($fletesR)
+            ,$porceFletesR.'%',intval($servicLogR),$porceServicLogR.'%',intval($estratComerR)
+            ,$porceEstratComerR.'%',intval($impuestosR),$porceImpuestosR.'%',intval($descuentProntPR)
+            ,$porceDescuentProntPR.'%',intval($otros2R),$porceOtros2R.'%',intval($depreciaciR)
+            ,$porceDepreciaR.'%',intval($totGasOperR),$porceTotGasOperR.'%',intval($utilOper), $porceUtilBrR.'%']);
+            $c++;
+        }
       }
       array_push($mes, ['mes' => 'ACUMULADO']);
       array_push($mes, ['mes' => 'PROMEDIO']);
@@ -612,6 +796,7 @@ class GastosOperacionalesController extends Controller
       }
       $promTotalGasOper= $promedios[0]+$promedios[10]+$promedios[28];
       $promPorceTotalGasOper= round($promTotalGasOper*100/$ventasNetasUnitarios[12][7],2).'%';
+      dd($costosVentasUnitarios);
       $promUtilOperUnit= $costosVentasUnitarios[12][18]-$promTotalGasOper;
       $promPorceUtilOperUnit= round($promUtilOperUnit*100/$ventasNetasUnitarios[12][7],2).'%';
       array_push($promedios,$promTotalGasOper);

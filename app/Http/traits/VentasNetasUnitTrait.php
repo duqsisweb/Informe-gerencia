@@ -9,9 +9,11 @@ use Illuminate\Support\Facades\DB;
 trait VentasNetasUnitTrait
 {
 
+    use VentasNetasTrait;
 
     public function TablaVentasUnit($fechaIni, $fechaFin)
     {
+        
         if ($fechaIni != null) {
             $fechaIni = $fechaIni;
             $fechaFin = $fechaFin;
@@ -27,6 +29,11 @@ trait VentasNetasUnitTrait
             $fechaIni = null;
             $fechaFin = null;
         }
+        $headers = [
+            'ACEITES', 'MARGARINAS', 'SOLIDOS Y CREMOSOS', 'TOTAL PRODUCTO TERMINADO', 'INDUSTRIALES', 'OTROS (AGL-ACIDULADO)', 'SERVICIO DE MAQUILA', 'TOTAL VENTAS'
+        ];
+
+        $meses = [];
         $infos = [];
         $infoTs = [];
         $dates = [];
@@ -43,8 +50,6 @@ trait VentasNetasUnitTrait
             $dateObject = DateTime::createFromFormat('m', $infoD->INF_D_MES)->format('F');
             array_push($infos, [$aceiteUnit, $margaUnit, $solCrUnit, $totlPUnit, $indusUnit, $aglAcid, $servMaq, $totTBL, $dateObject]);
         }
-        //fin informacion
-        //informacion de vista ventas toneladas
         foreach ($infoTons as $infoT) {
             $aceiUnit2 = round($infoT->TON_ACEITES, 5);
             $margaUnit2 = round($infoT->TON_MARGARINAS, 5);
@@ -58,46 +63,184 @@ trait VentasNetasUnitTrait
         }
         //fin de informacion
         //contador de posiciones en arreglo de registros
-        $amount = count($infoTs);
+
         //fin contador
         $c = 1;
-        if ($c == 3 || $c == 6 || $c == 9 || $c == 12) {
-            for ($i = 0; $i < $amount; $i++) {
-                $divAceit = $infos[$i][0] / $infoTs[$i][0];
-                $divMarga = $infos[$i][1] / $infoTs[$i][1];
-                $divSolCr = $infos[$i][2] / $infoTs[$i][2];
-                $divTotlPt = $infos[$i][3] / $infoTs[$i][3];
-                $divIndus = $infos[$i][4] / $infoTs[$i][4];
-                $divAgAc = $infos[$i][5] / $infoTs[$i][5];
-                $divServMaq = $infos[$i][6] / $infoTs[$i][6];
-                $divTotlVen = $infos[$i][7] / $infoTs[$i][7];
-                $mes = $infos[$i][8];
-
+        for ($m = 0; $m < count($infoTs); $m++) {
+            if ($c == 3 || $c == 7 || $c == 11|| $c == 15) {
+                $divAceit = $infos[$m][0] / $infoTs[$m][0];
+                $divMarga = $infos[$m][1] / $infoTs[$m][1];
+                $divSolCr = $infos[$m][2] / $infoTs[$m][2];
+                $divTotlPt = $infos[$m][3] / $infoTs[$m][3];
+                $divIndus = $infos[$m][4] / $infoTs[$m][4];
+                $divAgAc = $infos[$m][5] / $infoTs[$m][5];
+                $divServMaq = $infos[$m][6] / $infoTs[$m][6];
+                $divTotlVen = $infos[$m][7] / $infoTs[$m][7];
+                $mes = $infos[$m][8];
                 array_push($dates, [
                     intval($divAceit), intval(round($divMarga)), intval(round($divSolCr)), intval(round($divTotlPt)),
                     intval(round($divIndus)), intval(round($divAgAc)), intval(round($divServMaq)), intval(round($divTotlVen))
                 ]);
-            }
-            $c++;
-        } else {
-            for ($i = 0; $i < $amount; $i++) {
-                $divAceit = $infos[$i][0] / $infoTs[$i][0];
-                $divMarga = $infos[$i][1] / $infoTs[$i][1];
-                $divSolCr = $infos[$i][2] / $infoTs[$i][2];
-                $divTotlPt = $infos[$i][3] / $infoTs[$i][3];
-                $divIndus = $infos[$i][4] / $infoTs[$i][4];
-                $divAgAc = $infos[$i][5] / $infoTs[$i][5];
-                $divServMaq = $infos[$i][6] / $infoTs[$i][6];
-                $divTotlVen = $infos[$i][7] / $infoTs[$i][7];
-                $mes = $infos[$i][8];
+                array_push($meses, ['mes' => $mes]);
+                array_push($meses, ['mes' => 'TRIMESTRE']);
+                switch ($c) {
+                    case $c <= 4:
+                        $ventasNetasTabla = $this->TablaVentas($fechaIni, $fechaFin);
+                        $ventasNetasTabla = array_slice($ventasNetasTabla, 0, 3);
+                        
+                        $sumaVentas = [];
+                        for ($i = 0; $i < count($ventasNetasTabla[0]); $i++) {
+                            $suma = 0;
+                            foreach ($ventasNetasTabla as $prom) {
+                                $suma += $prom[$i];
+                            }
+                            array_push($sumaVentas, intval(round($suma / 3)));
+                        }
+                        $toneladasTabla = $this->TablaVentasToneladas($fechaIni, $fechaFin);
+                        $toneladasTabla = array_slice($toneladasTabla, 0, 3);
+                        $sumaTons = [];
+                        for ($i = 0; $i < count($toneladasTabla[0]); $i++) {
+                            $suma = 0;
+                            foreach ($toneladasTabla as $prom) {
+                                $suma += $prom[$i];
+                            }
+                            array_push($sumaTons, intval(round($suma / 3)));
+                        }
+                        $sumfinals = [];
+                        $h = 1;
+                        for ($i = 0; $i < count($sumaTons) - 1; $i++) {
+                            array_push($sumfinals, intval(round($sumaVentas[$i] / $sumaTons[$h])));
+                            $h++;
+                        }
+                        array_push($sumfinals, intval(round(($sumaVentas[8] - $sumaVentas[6]) / $sumaTons[0])));
+                        array_push($dates, $sumfinals);
+                        $c++;
+                        break;
+                        case $c > 4 && $c <= 8:
+                            $ventasNetasTabla = $this->TablaVentas($fechaIni, $fechaFin);
+                        $ventasNetasTabla = array_slice($ventasNetasTabla, 4, 3);
+                        $sumaVentas = [];
+                        for ($i = 0; $i < count($ventasNetasTabla[0]); $i++) {
+                            $suma = 0;
+                            foreach ($ventasNetasTabla as $prom) {
+                                $suma += $prom[$i];
+                            }
+                            array_push($sumaVentas, intval(round($suma / 3)));
+                        }
 
+                        $toneladasTabla = $this->TablaVentasToneladas($fechaIni, $fechaFin);
+                        $toneladasTabla = array_slice($toneladasTabla, 0, 3);
+                        $sumaTons = [];
+                        for ($i = 0; $i < count($toneladasTabla[0]); $i++) {
+                            $suma = 0;
+                            foreach ($toneladasTabla as $prom) {
+                                $suma += $prom[$i];
+                            }
+                            array_push($sumaTons, intval(round($suma / 3)));
+                        }
+
+                        $sumfinals = [];
+                        $h = 1;
+                        for ($i = 0; $i < count($sumaTons) - 1; $i++) {
+                            array_push($sumfinals, intval(round($sumaVentas[$i] / $sumaTons[$h])));
+                            $h++;
+                        }
+                        array_push($sumfinals, intval(round(($sumaVentas[8] - $sumaVentas[6]) / $sumaTons[0])));
+                        array_push($dates, $sumfinals);
+                        $c++;
+                        break;
+                    case $c > 7 && $c <= 11:
+
+                        $ventasNetasTabla = $this->TablaVentas($fechaIni, $fechaFin);
+                        $ventasNetasTabla = array_slice($ventasNetasTabla, 8, 3);
+                        $sumaVentas = [];
+                        for ($i = 0; $i < count($ventasNetasTabla[0]); $i++) {
+                            $suma = 0;
+                            foreach ($ventasNetasTabla as $prom) {
+                                $suma += $prom[$i];
+                            }
+                            array_push($sumaVentas, intval(round($suma / 3)));
+                        }
+
+                        $toneladasTabla = $this->TablaVentasToneladas($fechaIni, $fechaFin);
+                        $toneladasTabla = array_slice($toneladasTabla, 0, 3);
+                        $sumaTons = [];
+                        for ($i = 0; $i < count($toneladasTabla[0]); $i++) {
+                            $suma = 0;
+                            foreach ($toneladasTabla as $prom) {
+                                $suma += $prom[$i];
+                            }
+                            array_push($sumaTons, intval(round($suma / 3)));
+                        }
+
+                        $sumfinals = [];
+                        $h = 1;
+                        for ($i = 0; $i < count($sumaTons) - 1; $i++) {
+                            array_push($sumfinals, intval(round($sumaVentas[$i] / $sumaTons[$h])));
+                            $h++;
+                        }
+                        array_push($sumfinals, intval(round(($sumaVentas[8] - $sumaVentas[6]) / $sumaTons[0])));
+                        array_push($dates, $sumfinals);
+                        $c++;
+                        break;
+                    case $c > 11:
+                        $ventasNetasTabla = $this->TablaVentas($fechaIni, $fechaFin);
+                        $ventasNetasTabla = array_slice($ventasNetasTabla, 12, 3);
+                        $sumaVentas = [];
+                        for ($i = 0; $i < count($ventasNetasTabla[0]); $i++) {
+                            $suma = 0;
+                            foreach ($ventasNetasTabla as $prom) {
+                                $suma += $prom[$i];
+                            }
+                            array_push($sumaVentas, intval(round($suma / 3)));
+                        }
+
+                        $toneladasTabla = $this->TablaVentasToneladas($fechaIni, $fechaFin);
+                        $toneladasTabla = array_slice($toneladasTabla, 0, 3);
+                        $sumaTons = [];
+                        for ($i = 0; $i < count($toneladasTabla[0]); $i++) {
+                            $suma = 0;
+                            foreach ($toneladasTabla as $prom) {
+                                $suma += $prom[$i];
+                            }
+                            array_push($sumaTons, intval(round($suma / 3)));
+                        }
+
+                        $sumfinals = [];
+                        $h = 1;
+                        for ($i = 0; $i < count($sumaTons) - 1; $i++) {
+                            array_push($sumfinals, intval(round($sumaVentas[$i] / $sumaTons[$h])));
+                            $h++;
+                        }
+                        array_push($sumfinals, intval(round(($sumaVentas[8] - $sumaVentas[6]) / $sumaTons[0])));
+                        array_push($dates, $sumfinals);
+                        $c++;
+                        break;
+                }
+                $c++;
+            } else {
+                $divAceit = $infos[$m][0] / $infoTs[$m][0];
+                $divMarga = $infos[$m][1] / $infoTs[$m][1];
+                $divSolCr = $infos[$m][2] / $infoTs[$m][2];
+                $divTotlPt = $infos[$m][3] / $infoTs[$m][3];
+                $divIndus = $infos[$m][4] / $infoTs[$m][4];
+                $divAgAc = $infos[$m][5] / $infoTs[$m][5];
+                $divServMaq = $infos[$m][6] / $infoTs[$m][6];
+                $divTotlVen = $infos[$m][7] / $infoTs[$m][7];
+                $mes = $infos[$m][8];
                 array_push($dates, [
                     intval($divAceit), intval(round($divMarga)), intval(round($divSolCr)), intval(round($divTotlPt)),
                     intval(round($divIndus)), intval(round($divAgAc)), intval(round($divServMaq)), intval(round($divTotlVen))
                 ]);
+                array_push($meses, ['mes' => $mes]);
+                $c++;
             }
-            $c++;
         }
+
+
+
+        array_push($meses, ['mes' => 'ACUMULADO']);
+        array_push($meses, ['mes' => 'PROMEDIO']);
         $sumatoriasV = [];
         foreach ($infoSales as $sums) {
             $aceites =  round($sums->ACEITES, 5);
@@ -161,10 +304,6 @@ trait VentasNetasUnitTrait
         array_push($promedio, (intval(round($promV[7] - $promV[6]) / $promT[7])));
         array_push($dates, $promedio);
 
-        $form = 0;
-        foreach ($dates as $form) {
-            $form = count($form);
-        }
         return $dates;
     }
 }

@@ -401,6 +401,8 @@ class CostosVentasController extends Controller
         $formates = [];
         $cosVenUnit = [];
         $c = 1;
+        
+        $m=0;
         for ($i = 0; $i < count($data2); $i++) {
             if ($c == 3 || $c == 7 || $c == 11 || $c == 15) {
                 $aceiteF = $data1[$i][0] / $data2[$i][0];
@@ -436,12 +438,15 @@ class CostosVentasController extends Controller
                     intval(round($solidCreF)), intval(round($industrialesF)),
                     intval(round($otrosAcGrF)), intval(round($servMaqF))
                 ]);
-                array_push($mes, ['mes' => $meses[$i]]);
+                if($m<11){
+                    array_push($mes, ['mes' => $meses[$m]]);
+                }
+                $m++;
                 array_push($mes, ['mes' => 'TRIMESTRE']);
                 switch ($c) {
-                    case $c <= 4:
+                    case $c <= 3:
                         $sumCostVen=[];
-                        for ($i = 0; $i < count($formates[0]); $i++) {
+                        for ($i = 0; $i < count($formates[0])-4; $i++) {
                             $suma = 0;
                             foreach ($formates as $prom) {
                                 if($i%2==0){
@@ -459,151 +464,189 @@ class CostosVentasController extends Controller
                         }
                         $sumCostVen= array_values($sumCostVen);
                         $ventasNetasUnitTabla = $this->TablaVentasUnit($fechaIni, $fechaFin);
-                        dd($ventasNetasUnitTabla);
-                        $ventasNetasUnitTabla = array_slice($ventasNetasUnitTabla, 2, 1);
+                        $ventasNetasUnitTabla = array_slice($ventasNetasUnitTabla, 3, 1);
+                        $contoVentasTabla= $this->TablaCostos($fechaIni, $fechaFin);
+                        $contoVentasTabla = array_slice($contoVentasTabla, 3, 1);
+                        $ventasToneladasTabla = $this->TablaVentasToneladas($fechaIni, $fechaFin);
+                        $ventasToneladasTabla = array_slice($ventasToneladasTabla, 3, 1);
+                        $sumsFin=[];
+                        for($i=0;$i<count($sumCostVen);$i++){
+                            array_push($sumsFin,$sumCostVen[$i]);
+                            array_push($sumsFin,round($sumCostVen[$i]*100/$ventasNetasUnitTabla[0][$i],2).'%');
+                        }
+                        $totCosVen=round($contoVentasTabla[0][16]/$ventasToneladasTabla[0][0]);
+                        array_push($sumsFin,$totCosVen);
+                        $porceTotCosVen= round($totCosVen*100/$ventasNetasUnitTabla[0][7]);
+                        array_push($sumsFin,round($porceTotCosVen,2).'%');
+                        $utilBrut= $totCosVen-$ventasNetasUnitTabla[0][7];
+                        array_push($sumsFin,$utilBrut);
+                        array_push($sumsFin,round($utilBrut/$ventasNetasUnitTabla[0][7],2).'%');
+                        array_push($formates, $sumsFin);
                         $c++;
                         break;
-                    case $c > 4 && $c <= 8:
-                        $ventasNetasTabla = $this->TablaVentasUnit($fechaIni, $fechaFin);
-                        $ventasNetasTabla = array_slice($ventasNetasTabla, 4, 3);
-                        $sumaVentas = [];
-                        for ($i = 0; $i < count($ventasNetasTabla[0]); $i++) {
+                    case $c > 3 && $c <= 8:
+                        $sumCostVen=[];
+                        for ($i = 0; $i < count($formates[0])-4; $i++) {
                             $suma = 0;
-                            foreach ($ventasNetasTabla as $prom) {
-                                $suma += $prom[$i];
-                            }
-                            array_push($sumaVentas, intval(round($suma / 3)));
-                        }
-
-                        $toneladasTabla = $this->TablaVentasToneladas($fechaIni, $fechaFin);
-                        $toneladasTabla = array_slice($toneladasTabla, 0, 3);
-                        $sumaTons = [];
-                        for ($i = 0; $i < count($toneladasTabla[0]); $i++) {
-                            $suma = 0;
-                            foreach ($toneladasTabla as $prom) {
-                                $suma += $prom[$i];
-                            }
-                            array_push($sumaTons, intval(round($suma / 3)));
-                        }
-
-                        $sumfinals = [];
-                        $h = 1;
-                        for ($i = 0; $i < count($sumaTons) - 1; $i++) {
-                            array_push($sumfinals, intval(round($sumaVentas[$i] / $sumaTons[$h])));
-                            $h++;
-                        }
-                        array_push($sumfinals, intval(round(($sumaVentas[8] - $sumaVentas[6]) / $sumaTons[0])));
-                        array_push($formates, $sumfinals);
-                        $c++;
-                        break;
-                    case $c > 7 && $c <= 11:
-
-                        $ventasNetasTabla = $this->TablaVentas($fechaIni, $fechaFin);
-                        $ventasNetasTabla = array_slice($ventasNetasTabla, 8, 3);
-                        $sumaVentas = [];
-                        for ($i = 0; $i < count($ventasNetasTabla[0]); $i++) {
-                            $suma = 0;
-                            foreach ($ventasNetasTabla as $prom) {
-                                $suma += $prom[$i];
-                            }
-                            array_push($sumaVentas, intval(round($suma / 3)));
-                        }
-
-                        $toneladasTabla = $this->TablaVentasToneladas($fechaIni, $fechaFin);
-                        $toneladasTabla = array_slice($toneladasTabla, 0, 3);
-                        $sumaTons = [];
-                        for ($i = 0; $i < count($toneladasTabla[0]); $i++) {
-                            $suma = 0;
-                            foreach ($toneladasTabla as $prom) {
+                            foreach ($formates as $prom) {
                                 if($i%2==0){
                                     $suma += $prom[$i];
                                 }
                             }
-                            array_push($sumaTons, intval(round($suma / 3)));
+                            array_push($sumCostVen, intval(round($suma / 3)));
                         }
-
-                        $sumfinals = [];
-                        $h = 1;
-                        for ($i = 0; $i < count($sumaTons) - 1; $i++) {
-                            array_push($sumfinals, intval(round($sumaVentas[$i] / $sumaTons[$h])));
-                            $h++;
+                        $cuenCos= count($sumCostVen);
+                        for($i=0;$i<$cuenCos;$i++){
+                            if($i%2==0){
+                            }else{
+                                unset($sumCostVen[$i]);
+                            }
                         }
-                        array_push($sumfinals, intval(round(($sumaVentas[8] - $sumaVentas[6]) / $sumaTons[0])));
-                        array_push($formates, $sumfinals);
+                        $sumCostVen= array_values($sumCostVen);
+                        $ventasNetasUnitTabla = $this->TablaVentasUnit($fechaIni, $fechaFin);
+                        $ventasNetasUnitTabla = array_slice($ventasNetasUnitTabla, 7, 1);
+                        $contoVentasTabla= $this->TablaCostos($fechaIni, $fechaFin);
+                        $contoVentasTabla = array_slice($contoVentasTabla, 7, 1);
+                        $ventasToneladasTabla = $this->TablaVentasToneladas($fechaIni, $fechaFin);
+                        $ventasToneladasTabla = array_slice($ventasToneladasTabla, 7, 1);
+                        $sumsFin=[];
+                        for($i=0;$i<count($sumCostVen);$i++){
+                            array_push($sumsFin,$sumCostVen[$i]);
+                            array_push($sumsFin,round($sumCostVen[$i]*100/$ventasNetasUnitTabla[0][$i],2).'%');
+                        }
+                        $totCosVen=round($contoVentasTabla[0][16]/$ventasToneladasTabla[0][0]);
+                        array_push($sumsFin,$totCosVen);
+                        $porceTotCosVen= round($totCosVen*100/$ventasNetasUnitTabla[0][7]);
+                        array_push($sumsFin,round($porceTotCosVen,2).'%');
+                        $utilBrut= $totCosVen-$ventasNetasUnitTabla[0][7];
+                        array_push($sumsFin,$utilBrut);
+                        array_push($sumsFin,round($utilBrut/$ventasNetasUnitTabla[0][7],2).'%');
+                        array_push($formates, $sumsFin);
                         $c++;
                         break;
-                    case $c > 11:
-                        //dd($c, 'llega');
-                        $ventasNetasTabla = $this->TablaVentas($fechaIni, $fechaFin);
-                        $ventasNetasTabla = array_slice($ventasNetasTabla, 12, 3);
-                        $sumaVentas = [];
-                        for ($i = 0; $i < count($ventasNetasTabla[0]); $i++) {
+                    case $c > 7 && $c <= 11:
+                        $sumCostVen=[];
+                        for ($i = 0; $i < count($formates[0])-4; $i++) {
                             $suma = 0;
-                            foreach ($ventasNetasTabla as $prom) {
-                                $suma += $prom[$i];
+                            foreach ($formates as $prom) {
+                                if($i%2==0){
+                                    $suma += $prom[$i];
+                                }
                             }
-                            array_push($sumaVentas, intval(round($suma / 3)));
+                            array_push($sumCostVen, intval(round($suma / 3)));
                         }
-
-                        $toneladasTabla = $this->TablaVentasToneladas($fechaIni, $fechaFin);
-                        $toneladasTabla = array_slice($toneladasTabla, 0, 3);
-                        $sumaTons = [];
-                        for ($i = 0; $i < count($toneladasTabla[0]); $i++) {
+                        $cuenCos= count($sumCostVen);
+                        for($i=0;$i<$cuenCos;$i++){
+                            if($i%2==0){
+                            }else{
+                                unset($sumCostVen[$i]);
+                            }
+                        }
+                        $sumCostVen= array_values($sumCostVen);
+                        $ventasNetasUnitTabla = $this->TablaVentasUnit($fechaIni, $fechaFin);
+                        $ventasNetasUnitTabla = array_slice($ventasNetasUnitTabla, 11, 1);
+                        $contoVentasTabla= $this->TablaCostos($fechaIni, $fechaFin);
+                        $contoVentasTabla = array_slice($contoVentasTabla, 11, 1);
+                        $ventasToneladasTabla = $this->TablaVentasToneladas($fechaIni, $fechaFin);
+                        $ventasToneladasTabla = array_slice($ventasToneladasTabla, 11, 1);
+                        $sumsFin=[];
+                        for($i=0;$i<count($sumCostVen);$i++){
+                            array_push($sumsFin,$sumCostVen[$i]);
+                            array_push($sumsFin,round($sumCostVen[$i]*100/$ventasNetasUnitTabla[0][$i],2).'%');
+                        }
+                        $totCosVen=round($contoVentasTabla[0][16]/$ventasToneladasTabla[0][0]);
+                        array_push($sumsFin,$totCosVen);
+                        $porceTotCosVen= round($totCosVen*100/$ventasNetasUnitTabla[0][7]);
+                        array_push($sumsFin,round($porceTotCosVen,2).'%');
+                        $utilBrut= $totCosVen-$ventasNetasUnitTabla[0][7];
+                        array_push($sumsFin,$utilBrut);
+                        array_push($sumsFin,round($utilBrut/$ventasNetasUnitTabla[0][7],2).'%');
+                        array_push($formates, $sumsFin);
+                        $c++;
+                        break;
+                    case $c > 15:
+                        $sumCostVen=[];
+                        for ($i = 0; $i < count($formates[0])-4; $i++) {
                             $suma = 0;
-                            foreach ($toneladasTabla as $prom) {
-                                $suma += $prom[$i];
+                            foreach ($formates as $prom) {
+                                if($i%2==0){
+                                    $suma += $prom[$i];
+                                }
                             }
-                            array_push($sumaTons, intval(round($suma / 3)));
+                            array_push($sumCostVen, intval(round($suma / 3)));
                         }
-
-                        $sumfinals = [];
-                        $h = 1;
-                        for ($i = 0; $i < count($sumaTons) - 1; $i++) {
-                            array_push($sumfinals, intval(round($sumaVentas[$i] / $sumaTons[$h])));
-                            $h++;
+                        $cuenCos= count($sumCostVen);
+                        for($i=0;$i<$cuenCos;$i++){
+                            if($i%2==0){
+                            }else{
+                                unset($sumCostVen[$i]);
+                            }
                         }
-                        array_push($sumfinals, intval(round(($sumaVentas[8] - $sumaVentas[6]) / $sumaTons[0])));
-                        array_push($formates, $sumfinals);
+                        $sumCostVen= array_values($sumCostVen);
+                        $ventasNetasUnitTabla = $this->TablaVentasUnit($fechaIni, $fechaFin);
+                        $ventasNetasUnitTabla = array_slice($ventasNetasUnitTabla, 15, 1);
+                        $contoVentasTabla= $this->TablaCostos($fechaIni, $fechaFin);
+                        $contoVentasTabla = array_slice($contoVentasTabla, 15, 1);
+                        $ventasToneladasTabla = $this->TablaVentasToneladas($fechaIni, $fechaFin);
+                        $ventasToneladasTabla = array_slice($ventasToneladasTabla, 15, 1);
+                        $sumsFin=[];
+                        for($i=0;$i<count($sumCostVen);$i++){
+                            array_push($sumsFin,$sumCostVen[$i]);
+                            array_push($sumsFin,round($sumCostVen[$i]*100/$ventasNetasUnitTabla[0][$i],2).'%');
+                        }
+                        $totCosVen=round($contoVentasTabla[0][16]/$ventasToneladasTabla[0][0]);
+                        array_push($sumsFin,$totCosVen);
+                        $porceTotCosVen= round($totCosVen*100/$ventasNetasUnitTabla[0][7]);
+                        array_push($sumsFin,round($porceTotCosVen,2).'%');
+                        $utilBrut= $totCosVen-$ventasNetasUnitTabla[0][7];
+                        array_push($sumsFin,$utilBrut);
+                        array_push($sumsFin,round($utilBrut/$ventasNetasUnitTabla[0][7],2).'%');
+                        array_push($formates, $sumsFin);
                         $c++;
                         break;
                 }
                 $c++;
             } else {
-                $aceiteF = $data1[$i][0] / $data2[$i][0];
-                $divAceit1 = $data1[$i][1] / $data2[$i][0];
-                $divMarga1 = $data1[$i][3] / $data2[$i][1];
-                $divSolidCre1 = $data1[$i][5] / $data2[$i][2];
-                $divIndustriales1 = $data1[$i][7] / $data2[$i][3];
-                $divOtrosAcGr1 = $data1[$i][9] / $data2[$i][4];
-                $divservMaq1 = $data1[$i][11] / $data2[$i][5];
-                $porceAceiteF = $aceiteF * 100 / $divAceit1;
-                $margaF = $data1[$i][2] / $data2[$i][1];
-                $porceMargaF = round($margaF, 2) * 100 / $divMarga1;
-                $solidCreF = $data1[$i][4] / $data2[$i][2];
-                $porceSolidCreF = round($solidCreF, 2) * 100 / $divSolidCre1;
-                $industrialesF = $data1[$i][6] / $data2[$i][3];
-                $porceIndustrialesF = round($industrialesF, 2) * 100 / $divIndustriales1;
-                $otrosAcGrF = $data1[$i][8] / $data2[$i][4];
-                $porceOtrosAgF = round($otrosAcGrF, 2) * 100 / $divOtrosAcGr1;
-                $servMaqF = $data1[$i][10] / $data2[$i][5];
-                $porceservMaq = round($servMaqF, 2) * 100 / $divservMaq1;
-                $ventTon = $data1[$i][12] / $data2[$i][6];
-                $porceCosVen = round($ventTon, 2) * 100 / (($data1[$i][14] - $data1[$i][11]) / $data2[$i][6]);
-                $utlBrut = ((round($data1[$i][14]) - round($data1[$i][11])) / round($data2[$i][6])) - $ventTon;
-                $porceTotlBrut = round($utlBrut, 2) * 100 / intval(round((round($data1[$i][14]) - round($data1[$i][11])) / round($data2[$i][6])));
-                array_push($formates, [
-                    intval(round($aceiteF)), round($porceAceiteF, 2) . '%', intval(round($margaF)), round($porceMargaF, 2) . '%',
-                    intval(round($solidCreF)), round($porceSolidCreF, 2) . '%', intval(round($industrialesF)), round($porceIndustrialesF, 2) . '%',
-                    intval(round($otrosAcGrF)), round($porceOtrosAgF, 2) . '%', intval(round($servMaqF)), round($porceservMaq) . '%', intval(round($ventTon)),
-                    round($porceCosVen, 2) . '%', intval(round($utlBrut)), round($porceTotlBrut, 2) . '%'
-                ]);
-                array_push($cosVenUnit, [
-                    intval(round($aceiteF)), intval(round($margaF)),
-                    intval(round($solidCreF)), intval(round($industrialesF)),
-                    intval(round($otrosAcGrF)), intval(round($servMaqF))
-                ]);
-                array_push($mes, ['mes' => $meses[$i]]);
-                $c++;
+                if($c<16){
+                    $aceiteF = $data1[$i][0] / $data2[$i][0];
+                    $divAceit1 = $data1[$i][1] / $data2[$i][0];
+                    $divMarga1 = $data1[$i][3] / $data2[$i][1];
+                    $divSolidCre1 = $data1[$i][5] / $data2[$i][2];
+                    $divIndustriales1 = $data1[$i][7] / $data2[$i][3];
+                    $divOtrosAcGr1 = $data1[$i][9] / $data2[$i][4];
+                    $divservMaq1 = $data1[$i][11] / $data2[$i][5];
+                    $porceAceiteF = $aceiteF * 100 / $divAceit1;
+                    $margaF = $data1[$i][2] / $data2[$i][1];
+                    $porceMargaF = round($margaF, 2) * 100 / $divMarga1;
+                    $solidCreF = $data1[$i][4] / $data2[$i][2];
+                    $porceSolidCreF = round($solidCreF, 2) * 100 / $divSolidCre1;
+                    $industrialesF = $data1[$i][6] / $data2[$i][3];
+                    $porceIndustrialesF = round($industrialesF, 2) * 100 / $divIndustriales1;
+                    $otrosAcGrF = $data1[$i][8] / $data2[$i][4];
+                    $porceOtrosAgF = round($otrosAcGrF, 2) * 100 / $divOtrosAcGr1;
+                    $servMaqF = $data1[$i][10] / $data2[$i][5];
+                    $porceservMaq = round($servMaqF, 2) * 100 / $divservMaq1;
+                    $ventTon = $data1[$i][12] / $data2[$i][6];
+                    $porceCosVen = round($ventTon, 2) * 100 / (($data1[$i][14] - $data1[$i][11]) / $data2[$i][6]);
+                    $utlBrut = ((round($data1[$i][14]) - round($data1[$i][11])) / round($data2[$i][6])) - $ventTon;
+                    $porceTotlBrut = round($utlBrut, 2) * 100 / intval(round((round($data1[$i][14]) - round($data1[$i][11])) / round($data2[$i][6])));
+                    array_push($formates, [
+                        intval(round($aceiteF)), round($porceAceiteF, 2) . '%', intval(round($margaF)), round($porceMargaF, 2) . '%',
+                        intval(round($solidCreF)), round($porceSolidCreF, 2) . '%', intval(round($industrialesF)), round($porceIndustrialesF, 2) . '%',
+                        intval(round($otrosAcGrF)), round($porceOtrosAgF, 2) . '%', intval(round($servMaqF)), round($porceservMaq) . '%', intval(round($ventTon)),
+                        round($porceCosVen, 2) . '%', intval(round($utlBrut)), round($porceTotlBrut, 2) . '%'
+                    ]);
+                    array_push($cosVenUnit, [
+                        intval(round($aceiteF)), intval(round($margaF)),
+                        intval(round($solidCreF)), intval(round($industrialesF)),
+                        intval(round($otrosAcGrF)), intval(round($servMaqF))
+                    ]);
+                    if($m<11){
+                        array_push($mes, ['mes' => $meses[$m]]);
+                    }
+                    $c++;
+                    $m++;
+                }
             }
         }
         array_push($mes, ['mes' => 'ACUMULADO']);
@@ -703,9 +746,6 @@ class CostosVentasController extends Controller
         array_push($promedios, $t129);
         array_push($promedios, $t129 / $t113);
         //dd($promedios);
-
-
-
 
 
         array_push($formates, $acumulados);

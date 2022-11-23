@@ -88,8 +88,8 @@ trait GastosOperTrait
                $estrComer, $porceEstrComer, $impuestos, $porceImpu, $descPronPa, $porceDesPr, $otr2, $porceOtr2, $depreAmorti, $porceDepreAmor, $totGasOper,
                $porceTotGasOper, $UtilOper, $porceUtilOper
             ]);
-            array_push($mes, ['mes' => $dateObject]);
-            array_push($mes, ['mes' => 'TRIMESTRE']);
+            //array_push($mes, ['mes' => $dateObject]);
+            //array_push($mes, ['mes' => 'TRIMESTRE']);
             switch ($c) {
                case $c <= 3:
                   $ventasNetasTabla = $this->TablaVentas($fechaIni, $fechaFin);
@@ -318,7 +318,7 @@ trait GastosOperTrait
                $estrComer, $porceEstrComer, $impuestos, $porceImpu, $descPronPa, $porceDesPr, $otr2, $porceOtr2, $depreAmorti, $porceDepreAmor, $totGasOper,
                $porceTotGasOper, $UtilOper, $porceUtilOper
             ]);
-            array_push($mes, ['mes' => $dateObject]);
+            //array_push($mes, ['mes' => $dateObject]);
             $c++;
          }
       }
