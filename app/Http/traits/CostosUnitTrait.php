@@ -2,8 +2,11 @@
 namespace App\Http\Traits;
 
 use DateTime;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Http\Traits\CostosTrait;
+use App\Http\Traits\VentasNetasTrait;
+use App\Http\Traits\VentasNetasUnitTrait;
+use App\Http\Traits\VentasToneladasTrait;
 
 trait CostosUnitTrait {
     
@@ -13,7 +16,6 @@ trait CostosUnitTrait {
     use VentasNetasUnitTrait;
     public function TablaCostosUnit($fechaIni, $fechaFin)
     {
-
         if ($fechaIni != null) {
             $fechaIni = $fechaIni;
             $fechaFin = $fechaFin;

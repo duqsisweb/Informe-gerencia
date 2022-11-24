@@ -9,7 +9,6 @@ use App\Http\Traits\VentasNetasUnitTrait;
 use App\Http\Traits\VentasToneladasTrait;
 use DateTime;
 use Illuminate\Http\Request;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
 
 
@@ -19,7 +18,7 @@ class CostosVentasController extends Controller
     use VentasToneladasTrait;
     use CostosUnitTrait;
     use VentasNetasTrait;
-    use VentasNetasUnitTrait;
+    use VentasNetasUnitTrait; 
     public function total_costs(Request $request)
     {
         if ($request->filter1 != null) {
@@ -286,8 +285,6 @@ class CostosVentasController extends Controller
             array_push($acumPorc, intval(round($suma)));
             array_push($promPorc, intval(round($suma / count($infoSales))));
         }
-        //fin de la sumatoria
-        //inicio de creacion de el acumularor
         $acumulados = [];
         for ($i = 0; $i < count($acumPorceSinSu[0]); $i++) {
             $valorSum = $acumEnt[$i];
@@ -297,11 +294,7 @@ class CostosVentasController extends Controller
         }
         array_push($acumulados, intval($acumEnt[9]));
         array_push($acumulados, round($acumEnt[9] / $acumPorc[8], 2) . '%');
-        //fin de creacion del acumulador     
         array_push($formates, $acumulados);
-        //fin del arreglo
-
-        //generando arreglo de acumulados por producto
         $promedios = [];
         for ($i = 0; $i < count($acumPorceSinSu[0]); $i++) {
             $valorSumP = $promEnt[$i];
@@ -313,23 +306,11 @@ class CostosVentasController extends Controller
         array_push($promedios, round($promEnt[9] / $promPorc[8], 2) . '%');
         //fin de creacion del acumulador     
         array_push($formates, $promedios);
-        //fin de arreglo de acumulados por producto
-
-
-
-
         return view('TotalCosts\list_total_costs', ['dates' => $formates, 'headers' => $headers, 'mes' => $mes, 'contador' => count($formates[0])]);
     }
 
-
-
-
-
-
-
     public function unit_sales_costs(Request $request)
     {
-
         if ($request->filter1 != null) {
             $fechaIni = $request->filter1 . '-1';
             $fechaFin = $request->filter2 . '-1';
@@ -641,7 +622,7 @@ class CostosVentasController extends Controller
                         intval(round($solidCreF)), intval(round($industrialesF)),
                         intval(round($otrosAcGrF)), intval(round($servMaqF))
                     ]);
-                    if($m<11){
+                    if($m<=count($meses)){
                         array_push($mes, ['mes' => $meses[$m]]);
                     }
                     $c++;
@@ -745,16 +726,12 @@ class CostosVentasController extends Controller
         array_push($promedios, $t127 / $t113);
         array_push($promedios, $t129);
         array_push($promedios, $t129 / $t113);
-        //dd($promedios);
-
-
         array_push($formates, $acumulados);
         array_push($formates, $promedios);
         $form = 0;
         foreach ($formates as $form) {
             $form = count($form);
         }
-        //dd($formates,$headers,$mes,$form); 
         return view('TotalCosts\list_total_costs_unit', ['dates' => $formates, 'headers' => $headers, 'mes' => $mes, 'contador' => $form]);
     }
 }

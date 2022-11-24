@@ -406,47 +406,219 @@ class GastosNoOperacionalesController extends Controller
             $totGasOper = $gasAdmon + $gasVentas + $depresiaci;
             $infoTOT = round($info->SOLIDOS_CREMOSOS2 + $info->MARGARINAS2 + $info->ACEITES2) + round($info->INDUSTRIALES2 + $info->ACIDOS_GRASOS_ACIDULADO2 + $info->SERVICIO_MAQUILA2);
             $ebtida = $info->EBITDA;
-            $dateObject = DateTime::createFromFormat('m', $info->INF_D_MES)->format('F');
             array_push($data1, [$financiero, $totVEN, $retActiv, $gravMov, $otros, $totGasOper, $infoTOT, $ebtida]);
-            array_push($mes, ['mes' => $dateObject]);
         }
-        //dd($data1);
-
         $data2 = [];
         foreach ($infoTons as $info2) {
             $venTON = round($info2->TON_ACEITES + $info2->TON_MARGARINAS + $info2->TON_SOLIDOS_CREMOSOS + $info2->TON_INDUSTRIALES_OLEO + $info2->TON_ACIDOS_GRASOS_ACIDULADO);
             array_push($data2, [$venTON]);
         }
-        //dd($data2);
-
         $amount = count($data2) - 1;
         $formOper = [];
+        $c=1;
         for ($i = 0; $i <= $amount; $i++) {
-            $financieroV = round($data1[$i][0], 5) / round($data2[$i][0], 5);
-            $porceFinanc = round($financieroV, 2) * 100 / intval($data1[$i][1] / $data2[$i][0]);
-            $retActV = round($data1[$i][2], 5) / round($data2[$i][0], 5);
-            $porceRerAc = round($retActV, 2) * 100 / intval($data1[$i][1] / $data2[$i][0]);
-            $gravMoV = round($data1[$i][3], 5) / round($data2[$i][0], 5);
-            $porceGravMov = round($gravMoV, 2) * 100 / intval($data1[$i][1] / $data2[$i][0]);
-            $otrosV = round($data1[$i][4], 5) / round($data2[$i][0], 5);
-            $porceOtros = round($otrosV, 2) * 100 / intval($data1[$i][1] / $data2[$i][0]);
-            $totNoOp = $financieroV + $retActV + $gravMoV + $otrosV;
-            $porceTotNoOp = $totNoOp * 100 / intval($data1[$i][1] / $data2[$i][0]);
-            $totGasOperR = $data1[$i][5] / $data2[$i][0];
-            $TOTVEN = round($data1[$i][1]) / round($data2[$i][0]);
-            $totCosVen = $data1[$i][6] / $data2[$i][0];
-            $utilBrut = intval($TOTVEN - $totCosVen);
-            $utilOper = intval(+$utilBrut - intval($totGasOperR));
-            $utilAntImp = (+$utilOper - intval(round($totNoOp)));
-            $porceUtilAntImp =  $utilAntImp * 100 / intval($data1[$i][1] / $data2[$i][0]);
-            $ebtidaV = $data1[$i][7] / $data2[$i][0];
-            $porceEbtida = round($ebtidaV, 2) * 100 / intval($data1[$i][1] / $data2[$i][0]);
+            if ($c == 3 || $c == 7 || $c == 11 || $c == 15) {
+                $financieroV = round($data1[$i][0], 5) / round($data2[$i][0], 5);
+                $porceFinanc = round($financieroV, 2) * 100 / intval($data1[$i][1] / $data2[$i][0]);
+                $retActV = round($data1[$i][2], 5) / round($data2[$i][0], 5);
+                $porceRerAc = round($retActV, 2) * 100 / intval($data1[$i][1] / $data2[$i][0]);
+                $gravMoV = round($data1[$i][3], 5) / round($data2[$i][0], 5);
+                $porceGravMov = round($gravMoV, 2) * 100 / intval($data1[$i][1] / $data2[$i][0]);
+                $otrosV = round($data1[$i][4], 5) / round($data2[$i][0], 5);
+                $porceOtros = round($otrosV, 2) * 100 / intval($data1[$i][1] / $data2[$i][0]);
+                $totNoOp = $financieroV + $retActV + $gravMoV + $otrosV;
+                $porceTotNoOp = $totNoOp * 100 / intval($data1[$i][1] / $data2[$i][0]);
+                $totGasOperR = $data1[$i][5] / $data2[$i][0];
+                $TOTVEN = round($data1[$i][1]) / round($data2[$i][0]);
+                $totCosVen = $data1[$i][6] / $data2[$i][0];
+                $utilBrut = intval($TOTVEN - $totCosVen);
+                $utilOper = intval(+$utilBrut - intval($totGasOperR));
+                $utilAntImp = (+$utilOper - intval(round($totNoOp)));
+                $porceUtilAntImp =  $utilAntImp * 100 / intval($data1[$i][1] / $data2[$i][0]);
+                $ebtidaV = $data1[$i][7] / $data2[$i][0];
+                $porceEbtida = round($ebtidaV, 2) * 100 / intval($data1[$i][1] / $data2[$i][0]);
+                $dateObject = DateTime::createFromFormat('m', $infoNoOpe[$i]->INF_D_MES)->format('F');
+                array_push($mes, ['mes' => $dateObject]);
+                array_push($formOper, [
+                    intval(round($financieroV)), round($porceFinanc, 2) . '%', intval(round($retActV)), round($porceRerAc, 2) . '%', intval(round($gravMoV)), round($porceGravMov, 2) . '%', intval(round($otrosV)), round($porceOtros, 2) . '%', intval(round($totNoOp)), round($porceTotNoOp, 2) . '%', intval(round($utilAntImp)), round($porceUtilAntImp, 2) . '%', intval(round($ebtidaV)),
+                    round($porceEbtida, 2) . '%'
+                ]);
+                $c++;
+                switch ($c) {
+                    case $c <= 4:
+                        $gastosNoOperacionalesTabla= $this->tablaGastosNoOperacionales($fechaIni,$fechaFin);
+                        $gastosNoOperacionalesTabla= array_slice($gastosNoOperacionalesTabla,3,1);
+                        $cuenCos = count($gastosNoOperacionalesTabla[0]);
+                        for ($a = 0; $a < $cuenCos; $a++) {
+                            if ($a % 2 == 0) {
+                            } else {
+                                unset($gastosNoOperacionalesTabla[0][$a]);
+                            }
+                        }
+                        $gastosNoOperacionalesTabla = array_values($gastosNoOperacionalesTabla[0]);
+                        $ventasToneladasTabla= $this->TablaVentasToneladas($fechaIni,$fechaFin);
+                        $ventasToneladasTabla= array_slice($ventasToneladasTabla,3,1);
+                        $ventasNetasUnitariasTabla= $this->TablaVentasUnit($fechaIni,$fechaFin);
+                        $ventasNetasUnitariasTabla= array_slice($ventasNetasUnitariasTabla,3,1);
+                        $gastosOperacionalesUnitariosTabla= $this->tablaGastosOperacionalesUnit($fechaIni,$fechaFin);
+                        $gastosOperacionalesUnitariosTabla= array_slice($gastosOperacionalesUnitariosTabla,3,1);
+                        $trimestre = [];
+                        for ($i = 0; $i < count($gastosNoOperacionalesTabla)-3; $i++) {
+                            $val= round($gastosNoOperacionalesTabla[$i]/$ventasToneladasTabla[0][0]);
+                            array_push($trimestre, $val);
+                            array_push($trimestre, round($val*100/$ventasNetasUnitariasTabla[0][7],2).'%');
+                        }
+                        $totalNoOper= $trimestre[0]+$trimestre[2]+$trimestre[4]+$trimestre[6];
+                        array_push($trimestre, $totalNoOper);
+                        array_push($trimestre, round($totalNoOper*100/$ventasNetasUnitariasTabla[0][7],2).'%');
+                        $utilAntesOp= $totalNoOper-$gastosOperacionalesUnitariosTabla[0][32];
+                        array_push($trimestre, $utilAntesOp);
+                        array_push($trimestre, round($utilAntesOp*100/$ventasNetasUnitariasTabla[0][7],2).'%');
+                        $ebtida= round($gastosNoOperacionalesTabla[6]/$ventasToneladasTabla[0][0]);
+                        array_push($trimestre, $ebtida);
+                        array_push($trimestre, round($ebtida*100/$ventasNetasUnitariasTabla[0][7],2).'%');      
+                        $c++;
+                        array_push($formOper,$trimestre);
+                        array_push($mes, ['mes' => 'TRIMESTRE']);
+                        break;
+                    case $c >3 && $c < 8:
+                        $gastosNoOperacionalesTabla= $this->tablaGastosNoOperacionales($fechaIni,$fechaFin);
+                        $gastosNoOperacionalesTabla= array_slice($gastosNoOperacionalesTabla,7,1);
+                        $cuenCos = count($gastosNoOperacionalesTabla[0]);
+                        for ($a = 0; $a < $cuenCos; $a++) {
+                            if ($a % 2 == 0) {
+                            } else {
+                                unset($gastosNoOperacionalesTabla[0][$a]);
+                            }
+                        }
+                        $gastosNoOperacionalesTabla = array_values($gastosNoOperacionalesTabla[0]);
+                        $ventasToneladasTabla= $this->TablaVentasToneladas($fechaIni,$fechaFin);
+                        $ventasToneladasTabla= array_slice($ventasToneladasTabla,7,1);
+                        $ventasNetasUnitariasTabla= $this->TablaVentasUnit($fechaIni,$fechaFin);
+                        $ventasNetasUnitariasTabla= array_slice($ventasNetasUnitariasTabla,7,1);
+                        $gastosOperacionalesUnitariosTabla= $this->tablaGastosOperacionalesUnit($fechaIni,$fechaFin);
+                        $gastosOperacionalesUnitariosTabla= array_slice($gastosOperacionalesUnitariosTabla,7,1);
+                        $trimestre = [];
+                        for ($i = 0; $i < count($gastosNoOperacionalesTabla)-3; $i++) {
+                            $val= round($gastosNoOperacionalesTabla[$i]/$ventasToneladasTabla[0][0]);
+                            array_push($trimestre, $val);
+                            array_push($trimestre, round($val*100/$ventasNetasUnitariasTabla[0][7],2).'%');
+                        }
+                        $totalNoOper= $trimestre[0]+$trimestre[2]+$trimestre[4]+$trimestre[6];
+                        array_push($trimestre, $totalNoOper);
+                        array_push($trimestre, round($totalNoOper*100/$ventasNetasUnitariasTabla[0][7],2).'%');
+                        $utilAntesOp= $totalNoOper-$gastosOperacionalesUnitariosTabla[0][32];
+                        array_push($trimestre, $utilAntesOp);
+                        array_push($trimestre, round($utilAntesOp*100/$ventasNetasUnitariasTabla[0][7],2).'%');
+                        $ebtida= round($gastosNoOperacionalesTabla[6]/$ventasToneladasTabla[0][0]);
+                        array_push($trimestre, $ebtida);
+                        array_push($trimestre, round($ebtida*100/$ventasNetasUnitariasTabla[0][7],2).'%');      
+                        $c++;
+                        array_push($formOper,$trimestre);
+                        array_push($mes, ['mes' => 'TRIMESTRE']);
+                        break;
+                    case $c > 7 && $c <= 11:
+                        $gastosNoOperacionalesTabla= $this->tablaGastosNoOperacionales($fechaIni,$fechaFin);
+                        $gastosNoOperacionalesTabla= array_slice($gastosNoOperacionalesTabla,11,1);
+                        $cuenCos = count($gastosNoOperacionalesTabla[0]);
+                        for ($a = 0; $a < $cuenCos; $a++) {
+                            if ($a % 2 == 0) {
+                            } else {
+                                unset($gastosNoOperacionalesTabla[0][$a]);
+                            }
+                        }
+                        $gastosNoOperacionalesTabla = array_values($gastosNoOperacionalesTabla[0]);
+                        $ventasToneladasTabla= $this->TablaVentasToneladas($fechaIni,$fechaFin);
+                        $ventasToneladasTabla= array_slice($ventasToneladasTabla,11,1);
+                        $ventasNetasUnitariasTabla= $this->TablaVentasUnit($fechaIni,$fechaFin);
+                        $ventasNetasUnitariasTabla= array_slice($ventasNetasUnitariasTabla,11,1);
+                        $gastosOperacionalesUnitariosTabla= $this->tablaGastosOperacionalesUnit($fechaIni,$fechaFin);
+                        $gastosOperacionalesUnitariosTabla= array_slice($gastosOperacionalesUnitariosTabla,11,1);
+                        $trimestre = [];
+                        for ($i = 0; $i < count($gastosNoOperacionalesTabla)-3; $i++) {
+                            $val= round($gastosNoOperacionalesTabla[$i]/$ventasToneladasTabla[0][0]);
+                            array_push($trimestre, $val);
+                            array_push($trimestre, round($val*100/$ventasNetasUnitariasTabla[0][7],2).'%');
+                        }
+                        $totalNoOper= $trimestre[0]+$trimestre[2]+$trimestre[4]+$trimestre[6];
+                        array_push($trimestre, $totalNoOper);
+                        array_push($trimestre, round($totalNoOper*100/$ventasNetasUnitariasTabla[0][7],2).'%');
+                        $utilAntesOp= $totalNoOper-$gastosOperacionalesUnitariosTabla[0][32];
+                        array_push($trimestre, $utilAntesOp);
+                        array_push($trimestre, round($utilAntesOp*100/$ventasNetasUnitariasTabla[0][7],2).'%');
+                        $ebtida= round($gastosNoOperacionalesTabla[6]/$ventasToneladasTabla[0][0]);
+                        array_push($trimestre, $ebtida);
+                        array_push($trimestre, round($ebtida*100/$ventasNetasUnitariasTabla[0][7],2).'%');      
+                        $c++;
+                        array_push($formOper,$trimestre);
+                        array_push($mes, ['mes' => 'TRIMESTRE']);
+                        break;
+                    case $c > 11 :
+                        $gastosNoOperacionalesTabla= $this->tablaGastosNoOperacionales($fechaIni,$fechaFin);
+                        $gastosNoOperacionalesTabla= array_slice($gastosNoOperacionalesTabla,15,1);
+                        $cuenCos = count($gastosNoOperacionalesTabla[0]);
+                        for ($a = 0; $a < $cuenCos; $a++) {
+                            if ($a % 2 == 0) {
+                            } else {
+                                unset($gastosNoOperacionalesTabla[0][$a]);
+                            }
+                        }
+                        $gastosNoOperacionalesTabla = array_values($gastosNoOperacionalesTabla[0]);
+                        $ventasToneladasTabla= $this->TablaVentasToneladas($fechaIni,$fechaFin);
+                        $ventasToneladasTabla= array_slice($ventasToneladasTabla,15,1);
+                        $ventasNetasUnitariasTabla= $this->TablaVentasUnit($fechaIni,$fechaFin);
+                        $ventasNetasUnitariasTabla= array_slice($ventasNetasUnitariasTabla,15,1);
+                        $gastosOperacionalesUnitariosTabla= $this->tablaGastosOperacionalesUnit($fechaIni,$fechaFin);
+                        $gastosOperacionalesUnitariosTabla= array_slice($gastosOperacionalesUnitariosTabla,15,1);
+                        $trimestre = [];
+                        for ($i = 0; $i < count($gastosNoOperacionalesTabla)-3; $i++) {
+                            $val= round($gastosNoOperacionalesTabla[$i]/$ventasToneladasTabla[0][0]);
+                            array_push($trimestre, $val);
+                            array_push($trimestre, round($val*100/$ventasNetasUnitariasTabla[0][7],2).'%');
+                        }
+                        $totalNoOper= $trimestre[0]+$trimestre[2]+$trimestre[4]+$trimestre[6];
+                        array_push($trimestre, $totalNoOper);
+                        array_push($trimestre, round($totalNoOper*100/$ventasNetasUnitariasTabla[0][7],2).'%');
+                        $utilAntesOp= $totalNoOper-$gastosOperacionalesUnitariosTabla[0][32];
+                        array_push($trimestre, $utilAntesOp);
+                        array_push($trimestre, round($utilAntesOp*100/$ventasNetasUnitariasTabla[0][7],2).'%');
+                        $ebtida= round($gastosNoOperacionalesTabla[6]/$ventasToneladasTabla[0][0]);
+                        array_push($trimestre, $ebtida);
+                        array_push($trimestre, round($ebtida*100/$ventasNetasUnitariasTabla[0][7],2).'%');      
+                        $c++;
+                        array_push($formOper,$trimestre);
+                        array_push($mes, ['mes' => 'TRIMESTRE']);
+                        break;
+                }
 
-            //dd($ebtidaV);
-            array_push($formOper, [
-                intval(round($financieroV)), round($porceFinanc, 2) . '%', intval(round($retActV)), round($porceRerAc, 2) . '%', intval(round($gravMoV)), round($porceGravMov, 2) . '%', intval(round($otrosV)), round($porceOtros, 2) . '%', intval(round($totNoOp)), round($porceTotNoOp, 2) . '%', intval(round($utilAntImp)), round($porceUtilAntImp, 2) . '%', intval(round($ebtidaV)),
-                round($porceEbtida, 2) . '%'
-            ]);
+            }else{
+                $financieroV = round($data1[$i][0], 5) / round($data2[$i][0], 5);
+                $porceFinanc = round($financieroV, 2) * 100 / intval($data1[$i][1] / $data2[$i][0]);
+                $retActV = round($data1[$i][2], 5) / round($data2[$i][0], 5);
+                $porceRerAc = round($retActV, 2) * 100 / intval($data1[$i][1] / $data2[$i][0]);
+                $gravMoV = round($data1[$i][3], 5) / round($data2[$i][0], 5);
+                $porceGravMov = round($gravMoV, 2) * 100 / intval($data1[$i][1] / $data2[$i][0]);
+                $otrosV = round($data1[$i][4], 5) / round($data2[$i][0], 5);
+                $porceOtros = round($otrosV, 2) * 100 / intval($data1[$i][1] / $data2[$i][0]);
+                $totNoOp = $financieroV + $retActV + $gravMoV + $otrosV;
+                $porceTotNoOp = $totNoOp * 100 / intval($data1[$i][1] / $data2[$i][0]);
+                $totGasOperR = $data1[$i][5] / $data2[$i][0];
+                $TOTVEN = round($data1[$i][1]) / round($data2[$i][0]);
+                $totCosVen = $data1[$i][6] / $data2[$i][0];
+                $utilBrut = intval($TOTVEN - $totCosVen);
+                $utilOper = intval(+$utilBrut - intval($totGasOperR));
+                $utilAntImp = (+$utilOper - intval(round($totNoOp)));
+                $porceUtilAntImp =  $utilAntImp * 100 / intval($data1[$i][1] / $data2[$i][0]);
+                $ebtidaV = $data1[$i][7] / $data2[$i][0];
+                $porceEbtida = round($ebtidaV, 2) * 100 / intval($data1[$i][1] / $data2[$i][0]);
+                $dateObject = DateTime::createFromFormat('m', $infoNoOpe[$i]->INF_D_MES)->format('F');
+                array_push($mes, ['mes' => $dateObject]);
+                array_push($formOper, [
+                    intval(round($financieroV)), round($porceFinanc, 2) . '%', intval(round($retActV)), round($porceRerAc, 2) . '%', intval(round($gravMoV)), round($porceGravMov, 2) . '%', intval(round($otrosV)), round($porceOtros, 2) . '%', intval(round($totNoOp)), round($porceTotNoOp, 2) . '%', intval(round($utilAntImp)), round($porceUtilAntImp, 2) . '%', intval(round($ebtidaV)),
+                    round($porceEbtida, 2) . '%'
+                ]);
+                $c++;
+            }
         }
         array_push($mes, ['mes' => 'ACUMULADO']);
         array_push($mes, ['mes' => 'PROMEDIO']);

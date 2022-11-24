@@ -3,7 +3,6 @@
 namespace App\Http\Traits;
 
 use DateTime;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 trait GastosOperTrait

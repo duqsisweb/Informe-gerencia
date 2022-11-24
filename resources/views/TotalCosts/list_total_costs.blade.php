@@ -21,6 +21,15 @@
                 </div>
             </div>
         </form>
+        <form action="filter" method="POST" class="form-row mb-4">
+                @csrf
+                <div class="col">
+                    <div>
+                        <button type="submit" class="btn btn-danger">Limpiar-Filtro</button>
+                        <a type="submit"  name="para" value="mamá"></a>
+                    </div>
+                </div>
+            </form>
     <br>
     <table class="table" style="width: 100%; border: 1px solid #000; margin: 0 0 1em 1em">
         <thead style=" background:#FF0000">

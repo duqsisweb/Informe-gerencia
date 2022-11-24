@@ -13,7 +13,7 @@ trait VentasNetasUnitTrait
 
     public function TablaVentasUnit($fechaIni, $fechaFin)
     {
-        
+
         if ($fechaIni != null) {
             $fechaIni = $fechaIni;
             $fechaFin = $fechaFin;
@@ -67,7 +67,7 @@ trait VentasNetasUnitTrait
         //fin contador
         $c = 1;
         for ($m = 0; $m < count($infoTs); $m++) {
-            if ($c == 3 || $c == 7 || $c == 11|| $c == 15) {
+            if ($c == 3 || $c == 7 || $c == 11 || $c == 15) {
                 $divAceit = $infos[$m][0] / $infoTs[$m][0];
                 $divMarga = $infos[$m][1] / $infoTs[$m][1];
                 $divSolCr = $infos[$m][2] / $infoTs[$m][2];
@@ -86,8 +86,8 @@ trait VentasNetasUnitTrait
                 switch ($c) {
                     case $c <= 4:
                         $ventasNetasTabla = $this->TablaVentas($fechaIni, $fechaFin);
-                        $ventasNetasTabla = array_slice($ventasNetasTabla, 0, 3);
-                        
+                        $ventasNetasTabla = array_slice($ventasNetasTabla, 3, 1);
+
                         $sumaVentas = [];
                         for ($i = 0; $i < count($ventasNetasTabla[0]); $i++) {
                             $suma = 0;
@@ -97,7 +97,7 @@ trait VentasNetasUnitTrait
                             array_push($sumaVentas, intval(round($suma / 3)));
                         }
                         $toneladasTabla = $this->TablaVentasToneladas($fechaIni, $fechaFin);
-                        $toneladasTabla = array_slice($toneladasTabla, 0, 3);
+                        $toneladasTabla = array_slice($toneladasTabla, 3, 1);
                         $sumaTons = [];
                         for ($i = 0; $i < count($toneladasTabla[0]); $i++) {
                             $suma = 0;
@@ -116,9 +116,9 @@ trait VentasNetasUnitTrait
                         array_push($dates, $sumfinals);
                         $c++;
                         break;
-                        case $c > 4 && $c <= 8:
-                            $ventasNetasTabla = $this->TablaVentas($fechaIni, $fechaFin);
-                        $ventasNetasTabla = array_slice($ventasNetasTabla, 4, 3);
+                    case $c > 4 && $c <= 8:
+                        $ventasNetasTabla = $this->TablaVentas($fechaIni, $fechaFin);
+                        $ventasNetasTabla = array_slice($ventasNetasTabla, 7, 1);
                         $sumaVentas = [];
                         for ($i = 0; $i < count($ventasNetasTabla[0]); $i++) {
                             $suma = 0;
@@ -129,7 +129,7 @@ trait VentasNetasUnitTrait
                         }
 
                         $toneladasTabla = $this->TablaVentasToneladas($fechaIni, $fechaFin);
-                        $toneladasTabla = array_slice($toneladasTabla, 0, 3);
+                        $toneladasTabla = array_slice($toneladasTabla, 7, 1);
                         $sumaTons = [];
                         for ($i = 0; $i < count($toneladasTabla[0]); $i++) {
                             $suma = 0;
@@ -152,7 +152,7 @@ trait VentasNetasUnitTrait
                     case $c > 7 && $c <= 11:
 
                         $ventasNetasTabla = $this->TablaVentas($fechaIni, $fechaFin);
-                        $ventasNetasTabla = array_slice($ventasNetasTabla, 8, 3);
+                        $ventasNetasTabla = array_slice($ventasNetasTabla, 11, 1);
                         $sumaVentas = [];
                         for ($i = 0; $i < count($ventasNetasTabla[0]); $i++) {
                             $suma = 0;
@@ -163,7 +163,7 @@ trait VentasNetasUnitTrait
                         }
 
                         $toneladasTabla = $this->TablaVentasToneladas($fechaIni, $fechaFin);
-                        $toneladasTabla = array_slice($toneladasTabla, 0, 3);
+                        $toneladasTabla = array_slice($toneladasTabla, 11, 1);
                         $sumaTons = [];
                         for ($i = 0; $i < count($toneladasTabla[0]); $i++) {
                             $suma = 0;
@@ -185,7 +185,7 @@ trait VentasNetasUnitTrait
                         break;
                     case $c > 11:
                         $ventasNetasTabla = $this->TablaVentas($fechaIni, $fechaFin);
-                        $ventasNetasTabla = array_slice($ventasNetasTabla, 12, 3);
+                        $ventasNetasTabla = array_slice($ventasNetasTabla, 15, 1);
                         $sumaVentas = [];
                         for ($i = 0; $i < count($ventasNetasTabla[0]); $i++) {
                             $suma = 0;
@@ -196,7 +196,7 @@ trait VentasNetasUnitTrait
                         }
 
                         $toneladasTabla = $this->TablaVentasToneladas($fechaIni, $fechaFin);
-                        $toneladasTabla = array_slice($toneladasTabla, 0, 3);
+                        $toneladasTabla = array_slice($toneladasTabla, 15, 1);
                         $sumaTons = [];
                         for ($i = 0; $i < count($toneladasTabla[0]); $i++) {
                             $suma = 0;

@@ -2,15 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\ReportExport;
 use App\Http\Traits\VentasNetasTrait;
 use App\Http\Traits\VentasToneladasTrait;
-use App\Models\Total_sale;
 use DateTime;
 use Exception;
-use Illuminate\Http\Request;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\DB;
-use TCG\Voyager\Facades\Voyager;
+use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
 
 class VentasNetasController extends Controller
 {
@@ -156,13 +155,11 @@ class VentasNetasController extends Controller
             array_push($formates, $sumatorias);
             array_push($formates, $promedios);
 
-
             return view('SalesTotal/list_sales_total', ['dates' => $formates, 'headers' => $cabeceras, 'mes' => $mes, 'contador' => count($formates[0])]);
         } catch (Exception $e) {
             return $e->getMessage();
         }
     }
-
 
 
     public function unit_sales(Request $request)
@@ -220,7 +217,7 @@ class VentasNetasController extends Controller
         //fin contador
         $c = 1;
         for ($m = 0; $m < count($infoTs); $m++) {
-            if ($c == 3 || $c == 7 || $c == 11|| $c == 15) {
+            if ($c == 3 || $c == 7 || $c == 11 || $c == 15) {
                 $divAceit = $infos[$m][0] / $infoTs[$m][0];
                 $divMarga = $infos[$m][1] / $infoTs[$m][1];
                 $divSolCr = $infos[$m][2] / $infoTs[$m][2];
@@ -239,8 +236,8 @@ class VentasNetasController extends Controller
                 switch ($c) {
                     case $c <= 4:
                         $ventasNetasTabla = $this->TablaVentas($fechaIni, $fechaFin);
-                        $ventasNetasTabla = array_slice($ventasNetasTabla, 0, 3);
-                        
+                        $ventasNetasTabla = array_slice($ventasNetasTabla, 3, 1);
+
                         $sumaVentas = [];
                         for ($i = 0; $i < count($ventasNetasTabla[0]); $i++) {
                             $suma = 0;
@@ -250,7 +247,7 @@ class VentasNetasController extends Controller
                             array_push($sumaVentas, intval(round($suma / 3)));
                         }
                         $toneladasTabla = $this->TablaVentasToneladas($fechaIni, $fechaFin);
-                        $toneladasTabla = array_slice($toneladasTabla, 0, 3);
+                        $toneladasTabla = array_slice($toneladasTabla, 3, 1);
                         $sumaTons = [];
                         for ($i = 0; $i < count($toneladasTabla[0]); $i++) {
                             $suma = 0;
@@ -269,9 +266,9 @@ class VentasNetasController extends Controller
                         array_push($dates, $sumfinals);
                         $c++;
                         break;
-                        case $c > 4 && $c <= 8:
-                            $ventasNetasTabla = $this->TablaVentas($fechaIni, $fechaFin);
-                        $ventasNetasTabla = array_slice($ventasNetasTabla, 4, 3);
+                    case $c > 4 && $c <= 8:
+                        $ventasNetasTabla = $this->TablaVentas($fechaIni, $fechaFin);
+                        $ventasNetasTabla = array_slice($ventasNetasTabla, 7, 1);
                         $sumaVentas = [];
                         for ($i = 0; $i < count($ventasNetasTabla[0]); $i++) {
                             $suma = 0;
@@ -282,7 +279,7 @@ class VentasNetasController extends Controller
                         }
 
                         $toneladasTabla = $this->TablaVentasToneladas($fechaIni, $fechaFin);
-                        $toneladasTabla = array_slice($toneladasTabla, 0, 3);
+                        $toneladasTabla = array_slice($toneladasTabla, 7, 1);
                         $sumaTons = [];
                         for ($i = 0; $i < count($toneladasTabla[0]); $i++) {
                             $suma = 0;
@@ -305,7 +302,7 @@ class VentasNetasController extends Controller
                     case $c > 7 && $c <= 11:
 
                         $ventasNetasTabla = $this->TablaVentas($fechaIni, $fechaFin);
-                        $ventasNetasTabla = array_slice($ventasNetasTabla, 8, 3);
+                        $ventasNetasTabla = array_slice($ventasNetasTabla, 11, 1);
                         $sumaVentas = [];
                         for ($i = 0; $i < count($ventasNetasTabla[0]); $i++) {
                             $suma = 0;
@@ -316,7 +313,7 @@ class VentasNetasController extends Controller
                         }
 
                         $toneladasTabla = $this->TablaVentasToneladas($fechaIni, $fechaFin);
-                        $toneladasTabla = array_slice($toneladasTabla, 0, 3);
+                        $toneladasTabla = array_slice($toneladasTabla, 11, 1);
                         $sumaTons = [];
                         for ($i = 0; $i < count($toneladasTabla[0]); $i++) {
                             $suma = 0;
@@ -337,9 +334,8 @@ class VentasNetasController extends Controller
                         $c++;
                         break;
                     case $c > 11:
-                        //dd($c, 'llega');
                         $ventasNetasTabla = $this->TablaVentas($fechaIni, $fechaFin);
-                        $ventasNetasTabla = array_slice($ventasNetasTabla, 12, 3);
+                        $ventasNetasTabla = array_slice($ventasNetasTabla, 15, 1);
                         $sumaVentas = [];
                         for ($i = 0; $i < count($ventasNetasTabla[0]); $i++) {
                             $suma = 0;
@@ -350,7 +346,7 @@ class VentasNetasController extends Controller
                         }
 
                         $toneladasTabla = $this->TablaVentasToneladas($fechaIni, $fechaFin);
-                        $toneladasTabla = array_slice($toneladasTabla, 0, 3);
+                        $toneladasTabla = array_slice($toneladasTabla, 15, 1);
                         $sumaTons = [];
                         for ($i = 0; $i < count($toneladasTabla[0]); $i++) {
                             $suma = 0;
@@ -459,5 +455,18 @@ class VentasNetasController extends Controller
         array_push($dates, $promedio);
 
         return view('SalesTotal\list_total_sales_unit', ['headers' => $headers, 'dates' => $dates, 'mes' => $meses, 'contador' => count($dates[0])]);
+    }
+
+    public function report_total_sales(Request $request){
+        if($request->filter1 == null){
+            return view('Reportes\reporteVentasNetas');
+        }
+        $fechaIni = $request->filter1 . '-1';
+        $fechaFin = $request->filter2 . '-1';
+        $prueba=['d','f','h'];
+        $tablaVentasNetas= $this->TablaVentas($fechaIni, $fechaFin);
+        $cabeceras = ['ACEITES', 'MARGARINAS', 'SOLIDOS_CREMOSOS', 'TOTAL PRODUCTO TERMINADO', 'INDUSTRIALES', 'OTROS(AGL-ACIDULADO)', 'SERVICIO DE MAQUILA', 'TOTAL OTROS', 'TOTAL VENTAS'];
+
+       return Excel::download(new ReportExport($tablaVentasNetas,$cabeceras), 'VentasNetas.xlsx');
     }
 }

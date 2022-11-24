@@ -63,8 +63,8 @@ trait GastosNoOperTrait
                     $finan, $porceFinan, $retActiv, $porceActiv, $gravFinan, $porceGravFin, $otros, $porceOtros,
                     $totlNoOp, $porceTotlNoOp, $utilAntImp, $porceUtilAntImp, $ebitda, $porceEbtida
                 ]);
-                array_push($mes, ['mes' => $dateObject]);
-                array_push($mes, ['mes' => 'TRIMESTRE']);
+                //array_push($mes, ['mes' => $dateObject]);
+                //array_push($mes, ['mes' => 'TRIMESTRE']);
                 switch ($c) {
                     case $c <= 3:
                         $ventasNetasTabla = $this->TablaVentas($fechaIni, $fechaFin);
@@ -264,7 +264,7 @@ trait GastosNoOperTrait
                     $finan, $porceFinan, $retActiv, $porceActiv, $gravFinan, $porceGravFin, $otros, $porceOtros,
                     $totlNoOp, $porceTotlNoOp, $utilAntImp, $porceUtilAntImp, $ebitda, $porceEbtida
                 ]);
-                array_push($mes, ['mes' => $dateObject]);
+                //array_push($mes, ['mes' => $dateObject]);
                 $c++;
             }
         }
