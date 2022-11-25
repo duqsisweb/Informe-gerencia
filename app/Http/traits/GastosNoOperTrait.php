@@ -14,8 +14,8 @@ trait GastosNoOperTrait
         if ($fechaIni != null) {
             $fechaIni = $fechaIni;
             $fechaFin = $fechaFin;
-            $infoGastos = DB::connection('sqlsrv2')->table('TBL_RINFORME_JUNTA_DUQ')->whereBetween('INF_D_FECHAS', [$fechaIni, $fechaFin])->orderBy('INF_D_FECHAS', 'asc')->get();
-            $infoGastos = $infoGastos->toArray();
+            $infoNoOpe = DB::connection('sqlsrv2')->table('TBL_RINFORME_JUNTA_DUQ')->whereBetween('INF_D_FECHAS', [$fechaIni, $fechaFin])->orderBy('INF_D_FECHAS', 'asc')->get();
+            $infoNoOpe = $infoNoOpe->toArray();
         } else {
             $infoNoOpe = DB::connection('sqlsrv2')->table('TBL_RINFORME_JUNTA_DUQ')->orderBy('INF_D_FECHAS', 'asc')->get();
             $infoNoOpe = $infoNoOpe->toArray();

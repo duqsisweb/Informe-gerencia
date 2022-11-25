@@ -2,7 +2,7 @@
 @section('content')
 
 <div class="content">
-    <div class="text-center">
+    <div class="text-center"  >
         <h1>VENTAS TOTALES</h1>
         <br>
         <form action="filter" method="POST" class="form-row mb-4">
@@ -14,8 +14,7 @@
                 <label for="fecha">Hasta</label>
                 <input type="month" name="filter2" value="filter2" required>
                 <div>
-                    <button type="submit" class="btn btn-success">Filtrar</button>
-                    <a type="submit"  name="para" value="mamá"></a>
+                    <button id="filtrar" type="submit" class="btn btn-warning" style="position: relative; left: -10%; top: 44px">Filtrar</button>
                 </div>
             </div>
         </form>
@@ -23,14 +22,14 @@
             @csrf
             <div class="col">
                 <div>
-                    <button type="submit" class="btn btn-danger">Limpiar-Filtro</button>
-                    <a type="submit"  name="para" value="mamá"></a>
+                    <button id="limpiar" type="submit" class="btn btn-warning" style="position: relative; left: 1%; bottom: px">Limpiar-Filtro</button>
                 </div>
             </div>
         </form>
+        <button id="btnExportar" type="submit" class="btn btn-success" style="position: relative; left: 14%; bottom: 44px">Exportar Reporte</button>
     </div>
     <br>
-    <table class="table" style="width: 100%; border: 1px solid #000; margin: 0 0 1em 1em">
+    <table id="tabla" class="table" style="width: 100%; border: 1px solid #000; margin: 0 0 1em 1em">
         <thead style=" background:#FF0000">
             <tr>
                 <th scope="col" style=" background:#E62E2D; color:aliceblue">CONCEPTO</th>
@@ -69,5 +68,20 @@
         </tbody>
     </table>
 </div>
+<script>
+    const btnExportar = document.querySelector("#btnExportar");
+    tabla = document.querySelector("#tabla");
+    console.log(tabla)
+    btnExportar.addEventListener("click", function() {
+        let tableExport = new TableExport(tabla, {
+            exportButtons: false,
+            filename: "Reporte Ventas",
+            sheetname: "Reporte Ventas",
+        });
+        let datos = tableExport.getExportData();
+        let preferenciasDocumento = datos.tabla.xlsx;
+        tableExport.export2file(preferenciasDocumento.data, preferenciasDocumento.mimeType, preferenciasDocumento.filename, preferenciasDocumento.fileExtension, preferenciasDocumento.merges, preferenciasDocumento.RTL, preferenciasDocumento.sheetname);
+    });
+</script>
 
 @stop

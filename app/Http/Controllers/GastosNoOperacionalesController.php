@@ -22,6 +22,9 @@ class GastosNoOperacionalesController extends Controller
     {
         
         if ($request->filter1 != null) {
+            if($request->filter1 > $request->filter2){
+                return redirect('admin/gastosNo/NoOper')->with(['message' => "El mes inicial debe ser mayor que el mes final", 'alert-type' => 'error']);
+            }
             $fechaIni = $request->filter1 . '-1';
             $fechaFin = $request->filter2 . '-1';
             $infoNoOpe = DB::connection('sqlsrv2')->table('TBL_RINFORME_JUNTA_DUQ')->whereBetween('INF_D_FECHAS', [$fechaIni, $fechaFin])->orderBy('INF_D_FECHAS', 'asc')->get();
@@ -371,10 +374,13 @@ class GastosNoOperacionalesController extends Controller
     public function unit_nonOperatinals(Request $request)
     {
         if ($request->filter1 != null) {
+            if($request->filter1 > $request->filter2){
+                return redirect('admin/gastos/NoOperUnit')->with(['message' => "El mes inicial debe ser mayor que el mes final", 'alert-type' => 'error']);
+            }
             $fechaIni = $request->filter1 . '-1';
             $fechaFin = $request->filter2 . '-1';
-            $infoGastos = DB::connection('sqlsrv2')->table('TBL_RINFORME_JUNTA_DUQ')->whereBetween('INF_D_FECHAS', [$fechaIni, $fechaFin])->orderBy('INF_D_FECHAS', 'asc')->get();
-            $infoGastos = $infoGastos->toArray();
+            $infoNoOpe = DB::connection('sqlsrv2')->table('TBL_RINFORME_JUNTA_DUQ')->whereBetween('INF_D_FECHAS', [$fechaIni, $fechaFin])->orderBy('INF_D_FECHAS', 'asc')->get();
+            $infoNoOpe = $infoNoOpe->toArray();
             $infoTons = DB::connection('sqlsrv2')->table('TBL_RINFORME_JUNTA_DUQ2')->whereBetween('INF_D_FECHAS', [$fechaIni, $fechaFin])->orderBy('INF_D_FECHAS', 'asc')->get();
             $infoTons = $infoTons->toArray();
         } else {
@@ -624,15 +630,16 @@ class GastosNoOperacionalesController extends Controller
         array_push($mes, ['mes' => 'PROMEDIO']);
 
         $noOperacionalesUnit = $this->tablaGastosNoOperacionales($fechaIni, $fechaFin);
+        $noOperacionalesUnit = array_slice($noOperacionalesUnit, , 3);
         $ventasToneladas = $this->TablaVentasToneladas($fechaIni, $fechaFin);
         $gasOperacionalesUnit = $this->tablaGastosOperacionalesUnit($fechaIni, $fechaFin);
         $ventasNetasUnitarias = $this->TablaVentasUnit($fechaIni, $fechaFin);
 
 
         $acumulados = [];
-        for ($i = 0; $i < count($noOperacionalesUnit[11]) - 7; $i++) {
+        for ($i = 0; $i < count($noOperacionalesUnit[0]) - 7; $i++) {
             if ($i % 2 == 0) {
-                $ac = intval(round($noOperacionalesUnit[11][$i] / $ventasToneladas[11][0]));
+                $ac = intval(round($noOperacionalesUnit[0][$i] / $ventasToneladas[11][0]));
                 $pr = round($ac / $ventasNetasUnitarias[11][7], 2) . '%';
                 array_push($acumulados, $ac);
                 array_push($acumulados, $pr);

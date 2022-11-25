@@ -22,6 +22,9 @@ class CostosVentasController extends Controller
     public function total_costs(Request $request)
     {
         if ($request->filter1 != null) {
+            if($request->filter1 > $request->filter2){
+                return redirect('admin/costos/table')->with(['message' => "El mes inicial debe ser mayor que el mes final", 'alert-type' => 'error']);
+            }
             $fechaIni = $request->filter1 . '-1';
             $fechaFin = $request->filter2 . '-1';
             $infoSales = DB::connection('sqlsrv2')->table('TBL_RINFORME_JUNTA_DUQ')->whereBetween('INF_D_FECHAS', [$fechaIni, $fechaFin])->orderBy('INF_D_FECHAS', 'asc')->get();
@@ -312,6 +315,9 @@ class CostosVentasController extends Controller
     public function unit_sales_costs(Request $request)
     {
         if ($request->filter1 != null) {
+            if($request->filter1 > $request->filter2){
+                return redirect('admin/costU/unit')->with(['message' => "El mes inicial debe ser mayor que el mes final", 'alert-type' => 'error']);
+            }
             $fechaIni = $request->filter1 . '-1';
             $fechaFin = $request->filter2 . '-1';
             $infoCosts = DB::connection('sqlsrv2')->table('TBL_RINFORME_JUNTA_DUQ')->whereBetween('INF_D_FECHAS', [$fechaIni, $fechaFin])->orderBy('INF_D_FECHAS', 'asc')->get();

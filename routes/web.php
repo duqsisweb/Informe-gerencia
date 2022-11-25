@@ -45,5 +45,6 @@ Route::group(['prefix' => 'admin'], function () {
     Route::get('gastosU/operUnit', [GastosOperacionalesController::class, 'unit_operational_expenses']);
     Route::post('gastosU/filter', [GastosOperacionalesController::class, 'unit_operational_expenses']);
     Route::get('gastos/NoOperUnit', [GastosNoOperacionalesController::class, 'unit_nonOperatinals']);
+    Route::post('gastos/filter', [GastosNoOperacionalesController::class, 'unit_nonOperatinals']);
 });
 
